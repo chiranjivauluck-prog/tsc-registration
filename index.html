@@ -1,0 +1,784 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Registration — Master’s Toronto Satsang Program</title>
+<style>
+  :root { --ink: #16282b; --soft: #4c6064; --accent: #0b5563; --accent-dk: #083f4a; --tint: #e7f0f1; --line: #b8c8cb; --hair: #dfe8e9; --pale: #f4f8f8; --err: #b3121a; --ok: #0a6b3c; --warn: #9a5b00; --warn-bg: #fff6e5; }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif; color: var(--ink); background: #eef2f3; font-size: 16px; line-height: 1.4; }
+  button, input, select { font: inherit; color: inherit; }
+  .app { max-width: 680px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; }
+
+  .preview { background: #fff3cd; color: #6b4b00; font-size: 12.5px; font-weight: 600; text-align: center; padding: 6px 12px; border-bottom: 1px solid #f0d98a; }
+  .preview b { font-weight: 800; }
+
+  /* ---------- header + progress ---------- */
+  .top { background: #fff; padding: 14px 20px 10px; border-bottom: 3px solid var(--accent); }
+  .top .kicker { font-size: 11px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: var(--accent); }
+  .top h1 { margin: 0; font-size: 20px; line-height: 1.15; }
+  .top .dates { font-size: 14px; font-weight: 600; margin-top: 2px; }
+  .progress { display: flex; gap: 6px; margin-top: 12px; }
+  .progress span { flex: 1; height: 5px; border-radius: 3px; background: var(--hair); }
+  .progress span.done { background: var(--accent); }
+  .progress span.cur { background: var(--accent); opacity: .55; }
+  .stepname { font-size: 13px; color: var(--soft); margin-top: 6px; display: flex; justify-content: space-between; }
+
+  /* ---------- content ---------- */
+  main { flex: 1; padding: 16px 16px 110px; }
+  .card { background: #fff; border-radius: 12px; padding: 18px 18px 8px; box-shadow: 0 1px 3px rgba(0,0,0,.08); margin-bottom: 14px; }
+  h2 { margin: 0 0 4px; font-size: 19px; display: flex; align-items: center; gap: 9px; }
+  h2 .num { width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+  .hint { color: var(--soft); font-size: 14px; margin: 0 0 14px; }
+  .note { background: var(--tint); border-left: 4px solid var(--accent); border-radius: 0 8px 8px 0; padding: 10px 12px; font-size: 14px; margin: 0 0 14px; }
+  .note.warn { background: var(--warn-bg); border-color: var(--warn); }
+  .note.err { background: #fdeeee; border-color: var(--err); }
+  .note b { color: var(--ink); }
+
+  .f { margin-bottom: 14px; }
+  .f label, .f .lbl { display: block; font-size: 13px; font-weight: 600; letter-spacing: .3px; text-transform: uppercase; color: var(--soft); margin-bottom: 5px; }
+  .f label .req { color: var(--err); }
+  .in { width: 100%; height: 48px; padding: 0 14px; border: 1.5px solid var(--line); border-radius: 9px; background: #fff; font-size: 17px; outline: none; transition: border-color .15s, box-shadow .15s; }
+  .in:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(11,85,99,.18); }
+  .f.bad .in { border-color: var(--err); }
+  .f.good .in { border-color: var(--ok); }
+  .msg { font-size: 13px; margin-top: 5px; min-height: 0; }
+  .msg.warn { color: var(--warn); }
+  .f.bad .msg { color: var(--err); }
+  .f.good .msg::before { content: "✓ "; color: var(--ok); }
+  .f.good .msg { color: var(--ok); }
+  select.in { appearance: none; background: #fff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='9'><path d='M1 1l6 6 6-6' fill='none' stroke='%234c6064' stroke-width='2'/></svg>") no-repeat right 14px center; padding-right: 36px; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 420px) { .row { grid-template-columns: 1fr; } }
+
+  /* segmented choice (Yes/No, Mr/Ms) */
+  .seg { display: flex; gap: 8px; }
+  .seg button { flex: 1; height: 46px; border: 1.5px solid var(--line); border-radius: 9px; background: #fff; font-size: 16px; font-weight: 600; cursor: pointer; }
+  .seg button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .seg button:focus-visible { outline: 3px solid rgba(11,85,99,.35); }
+  .f.bad .seg button { border-color: var(--err); }
+
+  /* number stepper */
+  .stepper { display: flex; align-items: center; border: 1.5px solid var(--line); border-radius: 9px; overflow: hidden; width: 140px; flex: none; background: #fff; }
+  .stepper button { width: 44px; height: 46px; border: 0; background: var(--pale); font-size: 22px; cursor: pointer; color: var(--accent); }
+  .stepper button:disabled { color: #b9c5c7; }
+  .stepper input { flex: 1; width: 40px; height: 46px; border: 0; text-align: center; font-size: 18px; font-weight: 600; outline: none; }
+  .srow { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--hair); }
+  .srow:first-of-type { border-top: 0; }
+  .srow .t { font-size: 16px; flex: 1; min-width: 0; }
+  .srow .t small { display: block; color: var(--soft); font-size: 13px; }
+  .subtotal { display: flex; justify-content: space-between; padding: 12px 14px; background: var(--tint); border-radius: 9px; font-weight: 700; margin-top: 10px; }
+  .grp-title { font-size: 12px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--accent); margin: 16px 0 4px; }
+
+  /* option cards */
+  .opts { display: flex; flex-direction: column; gap: 10px; }
+  .opt { display: flex; gap: 12px; align-items: flex-start; border: 1.5px solid var(--line); border-radius: 11px; padding: 13px 14px; background: #fff; cursor: pointer; text-align: left; width: 100%; }
+  .opt.on { border-color: var(--accent); background: var(--tint); box-shadow: inset 0 0 0 1px var(--accent); }
+  .opt .radio { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line); flex: none; margin-top: 2px; position: relative; }
+  .opt.on .radio { border-color: var(--accent); }
+  .opt.on .radio::after { content: ""; position: absolute; inset: 4px; border-radius: 50%; background: var(--accent); }
+  .opt .t { font-weight: 700; font-size: 16px; }
+  .opt .d { font-size: 13.5px; color: var(--soft); margin-top: 2px; }
+  .opt.soon { opacity: .55; cursor: not-allowed; }
+  .opt .tag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; background: var(--hair); color: var(--soft); border-radius: 6px; padding: 2px 7px; margin-left: 6px; vertical-align: 1px; }
+  .branch { margin: 12px 0 6px 0; padding: 14px 14px 2px; border-left: 3px solid var(--accent); background: var(--pale); border-radius: 0 9px 9px 0; }
+
+  /* time chips + bus */
+  .chips { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .chip { height: 42px; border: 1.5px solid var(--line); border-radius: 9px; background: #fff; font-size: 15px; font-weight: 600; cursor: pointer; }
+  .chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .chip.off { color: #b9c5c7; text-decoration: line-through; background: var(--pale); cursor: not-allowed; }
+  .pk { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; font-weight: 700; margin-left: 8px; vertical-align: 1px; }
+  .pk.yes { color: var(--ok); } .pk.no { color: var(--err); }
+  .pk svg { width: 15px; height: 15px; }
+  .price { font-weight: 700; color: var(--accent); white-space: nowrap; }
+  .total { display: flex; justify-content: space-between; align-items: center; background: var(--accent); color: #fff; border-radius: 10px; padding: 14px 16px; font-size: 17px; font-weight: 700; }
+  .total small { display: block; font-weight: 400; font-size: 13px; opacity: .85; }
+  .sum { border: 1.5px solid var(--line); border-radius: 10px; overflow: hidden; margin-bottom: 14px; }
+  .sum div { display: flex; justify-content: space-between; padding: 10px 14px; border-top: 1px solid var(--hair); font-size: 15px; }
+  .sum div:first-child { border-top: 0; }
+  .sum div.g { background: var(--tint); font-weight: 700; font-size: 17px; }
+  .sum .ref { display: inline-flex; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 12px; font-weight: 700; align-items: center; justify-content: center; margin-right: 8px; }
+  .opt .t .price { float: right; }
+
+  /* day card */
+  .day { border: 1.5px solid var(--line); border-radius: 11px; padding: 14px; margin-bottom: 12px; }
+  .day .dh { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .day .dh b { font-size: 17px; }
+  .day .dh .seg { width: 170px; }
+  .day .body { margin-top: 12px; }
+  .day.off .body { display: none; }
+
+  /* review */
+  .rv { border-top: 1px solid var(--hair); padding: 10px 0; display: grid; grid-template-columns: 42% 1fr; gap: 8px; font-size: 15px; }
+  .rv:first-child { border-top: 0; }
+  .rv .k { color: var(--soft); }
+  .rv .v { font-weight: 600; }
+  .rv .v.empty { color: var(--err); font-weight: 500; }
+  .edit { float: right; font-size: 13px; color: var(--accent); background: none; border: 0; cursor: pointer; text-decoration: underline; padding: 0; }
+  .check { list-style: none; padding: 0; margin: 0; }
+  .check li { padding: 6px 0 6px 26px; position: relative; font-size: 15px; }
+  .check li::before { content: "✕"; position: absolute; left: 4px; color: var(--err); font-weight: 700; }
+  .check li a { color: var(--accent); }
+  .allgood { color: var(--ok); font-weight: 700; }
+
+  /* bottom nav */
+  .nav { position: fixed; left: 0; right: 0; bottom: 0; background: #fff; border-top: 1px solid var(--hair); padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); }
+  .nav .inner { max-width: 680px; margin: 0 auto; display: flex; gap: 10px; }
+  .btn { height: 50px; border-radius: 10px; border: 1.5px solid var(--accent); background: #fff; color: var(--accent); font-size: 16px; font-weight: 700; padding: 0 20px; cursor: pointer; }
+  .btn.primary { background: var(--accent); color: #fff; flex: 1; }
+  .btn.primary:hover { background: var(--accent-dk); }
+  .btn.ghost { border-color: transparent; color: var(--soft); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .draft { font-size: 12px; color: var(--soft); text-align: center; margin-top: 6px; }
+
+  /* restore banner */
+  .banner { background: var(--warn-bg); border: 1px solid #f0d9a8; border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; font-size: 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .banner .btn { height: 38px; padding: 0 14px; font-size: 14px; }
+
+  /* ---------- print sheet ---------- */
+  #sheet { display: none; }
+  @media print {
+    @page { size: 8.5in 11in; margin: .4in .5in; }
+    body { background: #fff; font-size: 9.5pt; line-height: 1.3; }
+    .app { display: none !important; }
+    #sheet { display: block; color: #000; }
+    .ph { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2.25pt solid var(--accent); padding-bottom: 4pt; margin-bottom: 6pt; }
+    .ph .kicker { font-size: 8pt; font-weight: 700; letter-spacing: 1.5pt; text-transform: uppercase; color: var(--accent); }
+    .ph h1 { margin: 0; font-size: 15pt; }
+    .ph .dates { font-size: 10.5pt; font-weight: 600; }
+    .ph .contact { font-size: 8.5pt; text-align: right; color: var(--soft); }
+    .ps { margin-bottom: 6pt; break-inside: avoid; }
+    .ps h3 { margin: 0 0 2pt; font-size: 8pt; font-weight: 700; letter-spacing: 1pt; text-transform: uppercase; color: var(--accent); border-bottom: .75pt solid var(--hair); padding-bottom: 2pt; }
+    .pr { display: grid; grid-template-columns: 2in 1fr; gap: 1pt 10pt; font-size: 9.5pt; padding: 1pt 0; }
+    .pr .k { color: var(--soft); }
+    .pr .v { font-weight: 600; }
+    table.pt { width: 100%; border-collapse: collapse; font-size: 9pt; margin-top: 2pt; }
+    table.pt th, table.pt td { border: .75pt solid var(--line); padding: 2pt 5pt; text-align: center; }
+    table.pt th { background: var(--tint); font-size: 8pt; }
+    table.pt td:first-child, table.pt th:first-child { text-align: left; font-weight: 600; white-space: nowrap; }
+    .pbox { border: .75pt solid var(--line); border-radius: 4pt; padding: 4pt 8pt; font-size: 9.5pt; }
+    .sig { display: grid; grid-template-columns: 2.2fr 1fr; gap: 12pt; margin-top: 7pt; }
+    .sig .b { border: 1.2pt solid #000; border-radius: 3pt; height: 26pt; position: relative; }
+    .sig .b span { position: absolute; right: 6pt; bottom: 3pt; font-size: 9pt; color: var(--soft); }
+    .sig .l { font-size: 8pt; font-weight: 700; letter-spacing: .6pt; text-transform: uppercase; color: var(--soft); margin-bottom: 2pt; }
+    .legal { display: grid; grid-template-columns: 1fr .85fr 1.4fr; gap: 10pt; font-size: 6.3pt; line-height: 1.2; color: #2c3e41; margin-top: 6pt; border-top: .75pt solid var(--hair); padding-top: 4pt; }
+    .legal b { display: block; font-size: 7pt; letter-spacing: .6pt; text-transform: uppercase; color: #000; margin-bottom: 1pt; }
+    .admin { border: 1pt dashed var(--line); border-radius: 4pt; padding: 4pt 9pt 6pt; margin-top: 7pt; background: #fafcfc; font-size: 8pt; break-inside: avoid; }
+    .admin .cap { font-weight: 700; letter-spacing: 1pt; text-transform: uppercase; }
+    .admin .grid { display: grid; grid-template-columns: 1.4fr 1.3fr 1.3fr 1.8fr auto auto; gap: 8pt; margin-top: 4pt; }
+    .admin .grid div { font-size: 7pt; font-weight: 700; letter-spacing: .5pt; text-transform: uppercase; color: var(--soft); }
+    .admin .grid i { display: block; height: 15pt; border: .75pt solid var(--line); border-radius: 3pt; background: #fff; margin-top: 2pt; }
+    .admin .grid .cb { display: block; width: 13pt; height: 13pt; border: 1.2pt solid #000; border-radius: 2.5pt; margin-top: 4pt; }
+    .pfoot { display: flex; justify-content: space-between; font-size: 7pt; color: var(--soft); margin-top: 5pt; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="preview" id="preview"></div>
+  <header class="top">
+    <div class="kicker">Registration Form</div>
+    <h1 id="ev-title"></h1>
+    <div class="dates" id="ev-dates"></div>
+    <div class="progress" id="progress"></div>
+    <div class="stepname"><span id="stepname"></span><span id="stepcount"></span></div>
+  </header>
+  <main id="main"></main>
+  <nav class="nav"><div class="inner" id="navbtns"></div><div class="draft" id="draftmsg"></div></nav>
+</div>
+<div id="sheet"></div>
+
+<script>
+/* =====================================================================
+   EVENT DATA  (copied from v03-data.js — keep in sync when it changes)
+   ===================================================================== */
+const BUILD = { number: "0.4", date: "2026-09-28", preview: true };
+const DATA = {
+  version: "v03_2027 (web)",
+  event: {
+    title: "Master’s Toronto Satsang Program",
+    year: "2027",
+    days: [
+      { weekday: "Saturday", long: "July XX", short: "Sat Jul XX" },
+      { weekday: "Sunday",   long: "July XX", short: "Sun Jul XX" }
+    ],
+    website: "www.torontoprogram.org",
+    phone: "1-888-728-7264 (toll-free)"
+  },
+  attendance: {
+    note: "Age 10–15 are encouraged to attend Satsang in the Satsang Venue with a parent/guardian.",
+    familyArea: [
+      { key: "fa5",  label: "Age 5 or under" },
+      { key: "fa9",  label: "Age 6 to 9" },
+      { key: "fa15", label: "Age 10 to 15", hint: "encouraged to attend the Satsang Venue instead" },
+      { key: "fag",  label: "Parent / Guardian(s)", hint: "only 1 per 4 children" }
+    ],
+    venue: { key: "venue", label: "Age 10+ (including adults)" },
+    seatingNote: "Translation, hearing assistance and Special Needs seating will not be in the front."
+  },
+  translationLanguages: [
+    { key: "en", label: "Punjabi/Hindi to English" },
+    { key: "fr", label: "Punjabi/Hindi/English to French" }
+  ],
+  transport: {
+    guidelines: [
+      "Children age 5 or under, or children weighing under 18 kg, as of the day of travel, must come by car.",
+      "Buses are not wheelchair-accessible."
+    ],
+    options: [
+      { key: "shuttle", label: "Study Centre Shuttle Buses", desc: "Bus from a fairground, park-and-ride or pick-up point. You will choose the location and times next.",
+        ineligible: "Not available for this form: children age 5 or under must come by car. Please choose Request to Park." },
+      { key: "hotel",   label: "Hotel Shuttle Buses", desc: "Only for Sangat staying in the designated hotels.", soon: true },
+      { key: "charter", label: "Charter Buses", desc: "Arranged by a local Satsang Centre or privately (15 passenger minimum).", soon: true },
+      { key: "taxi",    label: "Uber / Taxi / Drop-off", desc: "Someone drops you off and picks you up at the Study Centre gate." },
+      { key: "park",    label: "Request to Park at the Study Centre", desc: "Car parking is available only for Special Needs and families with children age 5 or under.",
+        ineligible: "Not available for this form: it requires Yes to special needs (Section 5) and/or a child age 5 or under attending (Section 2)." }
+    ],
+    parkReasons: [
+      { key: "special", label: "Special Needs" },
+      { key: "child",   label: "Child age 5 or under" }
+    ],
+    parkingNote: "Due to limited parking, car parking is available only for Special Needs and families with children age 5 or under.",
+    dropOff: {
+      address: ["65243 Dufferin County Road 3,", "East Garafraxa, ON L9W 7J7"],
+      warning: "There is no walking or stopping allowed to drop off or pick up passengers on the roads outside of the Study Centre.",
+      hint: "Use this address for Uber / Taxi or for whoever is dropping you off and picking you up."
+    }
+  },
+  busNotes: [
+    "Bus tickets are roundtrip and non-refundable. Please arrive at your bus location 20 minutes before the departure time.",
+    "Bus locations and departure times are subject to change and may not be available at the time of registration.",
+    "Return buses will depart the Study Centre from 12:00pm to 2:00pm on a first-come, first-served basis."
+  ],
+  // All times are AM. Put a ~ in front of a time (e.g. "~5:45") to show it as no longer available.
+  busOptions: [
+    { key: "A", name: "Orangeville Fairgrounds", parking: true, price: 10,
+      times: ["5:45", "6:00", "6:15", "6:30", "6:45", "7:00", "7:15", "7:30", "7:45", "8:00", "8:15", "8:30", "8:45", "9:00"] },
+    { key: "B", name: "Brampton Fairgrounds", parking: true, price: 10,
+      times: ["5:15", "5:30", "5:45", "6:00", "6:15", "6:30", "6:45", "7:00", "7:15", "7:30", "7:45", "8:00", "8:15"] },
+    { key: "C", name: "Park and Ride", parking: true, locations: [
+      { key: "bramalea",   name: "Brampton: Bramalea GO",        price: 10, times: ["5:15", "5:45", "6:15", "6:45", "7:15"] },
+      { key: "mtpleasant", name: "Brampton: Mount Pleasant GO",  price: 10, times: ["5:15", "5:45", "6:15", "6:45", "7:15"] },
+      { key: "mohawk",     name: "Hamilton: Mohawk College",     price: 20, times: ["5:00", "5:30", "6:00", "6:30"] },
+      { key: "conestoga",  name: "Kitchener: Conestoga College", price: 20, times: ["5:00", "5:30", "6:00", "6:30"] },
+      { key: "meadowvale", name: "Mississauga: Meadowvale GO",   price: 20, times: ["5:00", "5:30", "6:00", "6:30", "7:00"] }
+    ] },
+    { key: "D", name: "Pick Up and Drop Off", parking: false, locations: [
+      { key: "bcc",       name: "Brampton: Bramalea City Centre", price: 10, times: ["5:15", "5:45", "6:15", "6:45", "7:15"] },
+      { key: "shoppers",  name: "Brampton: Shoppers World",       price: 10, times: ["5:15", "5:45", "6:15", "6:45", "7:15"] },
+      { key: "squareone", name: "Mississauga: Square One",        price: 20, times: ["5:00", "5:30", "6:00", "6:30", "7:00"] },
+      { key: "stc",       name: "Scarborough: Town Centre",       price: 20, times: ["5:00", "5:30", "6:00", "6:30", "7:00"] },
+      { key: "vmc",       name: "Vaughan: Metropolitan Centre",   price: 20, times: ["5:00", "5:30", "6:00", "6:30"] }
+    ] }
+  ],
+  teaLunch: { teaPrice: 1.00, lunchPrice: 6.00, note: "Tea and lunch tickets are non-refundable.",
+    teaHint: "Morning tea and cookies, 6:00–8:30 am", lunchHint: "Wrap, granola bar, cookies and a juice box, after Satsang" },
+  chequePayableTo: "Science of the Soul Study Centre Canada",
+  provinces: ["Ontario", "Alberta", "British Columbia", "Manitoba", "New Brunswick", "Newfoundland and Labrador", "Nova Scotia", "Prince Edward Island", "Quebec", "Saskatchewan", "Northwest Territories", "Nunavut", "Yukon", "Other"],
+  legal: {
+    privacy: "Science of the Soul Study Centre Canada is committed to the protection of your privacy. Personal information collected on this form will only be used for event registration purposes. Your personal data will be protected and will not be disclosed to any third party.",
+    consent: "By completing this form, I/We consent to the collection, use, disclosure and storage of our personal information for event related purposes, including communication via voice calls and SMS.",
+    disclaimer: "Science of the Soul Study Centre Canada (SSSCC) is not liable for personal injury, property damage, or loss occurring on its premises, during activities, or involving the use of its property or third-party property, including off-site locations. By participating or using any property, all individuals assume full responsibility and release SSSCC from any claims or liabilities."
+  }
+};
+
+/* =====================================================================
+   STATE
+   ===================================================================== */
+const KEY = "tsc-registration-draft-v1";
+const blankDay = () => ({ attending: null, fa5: 0, fa9: 0, fa15: 0, fag: 0, venue: 0 });
+const blank = () => ({
+  step: 0,
+  contact: { title: null, first: "", last: "", phone: "", city: "", province: "Ontario", postal: "" },
+  days: [blankDay(), blankDay()],
+  needs: { translation: null, en: 0, fr: 0, hearing: null, hearingN: 0, special: null, specialN: 0 },
+  transport: { mode: null, parkReason: null, parkSpots: 1 },
+  bus: { option: null, location: null, days: [{ time: null, tickets: null, cars: null }, { time: null, tickets: null, cars: null }] },
+  food: { days: [{ tea: 0, lunch: 0 }, { tea: 0, lunch: 0 }] },
+  pay: { method: null },
+  touched: {}
+});
+let S = blank();
+let restored = false;
+try {
+  const saved = JSON.parse(localStorage.getItem(KEY) || "null");
+  if (saved && saved.contact) { S = Object.assign(blank(), saved); S.touched = S.touched || {}; S.bus = S.bus || blank().bus; S.food = S.food || blank().food; S.pay = S.pay || blank().pay; restored = true; }
+} catch (e) {}
+
+let saveTimer;
+function save() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try { localStorage.setItem(KEY, JSON.stringify(S)); draftMsg("Draft saved on this device " + new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + " · build " + BUILD.number); } catch (e) { draftMsg(""); }
+  }, 300);
+}
+function draftMsg(t) { document.getElementById("draftmsg").textContent = t; }
+
+/* =====================================================================
+   HELPERS
+   ===================================================================== */
+const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+const $ = sel => document.querySelector(sel);
+const E = DATA.event, [D1, D2] = E.days;
+const dayName = d => `${d.weekday} ${d.long}`;
+const digits = s => String(s).replace(/\D/g, "");
+const fmtPhone = s => { const d = digits(s).slice(0, 10); if (d.length < 4) return d; if (d.length < 7) return `(${d.slice(0,3)}) ${d.slice(3)}`; return `(${d.slice(0,3)}) ${d.slice(3,6)}-${d.slice(6)}`; };
+const fmtPostal = s => { const p = String(s).toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6); return p.length > 3 ? p.slice(0,3) + " " + p.slice(3) : p; };
+const kids = d => d.fa5 + d.fa9 + d.fa15;
+const parkElig = () => ({ special: S.needs.special === true, child: S.days.some(d => d.attending && d.fa5 > 0) });
+const busElig = () => !S.days.some(d => d.attending && d.fa5 > 0);
+const busOpt = () => DATA.busOptions.find(o => o.key === S.bus.option) || null;
+const busLoc = () => { const o = busOpt(); return o && o.locations ? o.locations.find(l => l.key === S.bus.location) || null : null; };
+// the resolved departure choice: { name, price, times, parking } or null
+const busChoice = () => { const o = busOpt(); if (!o) return null; if (!o.locations) return { name: `Option ${o.key}: ${o.name}`, price: o.price, times: o.times, parking: o.parking }; const l = busLoc(); return l ? { name: `Option ${o.key}: ${l.name}`, price: l.price, times: l.times, parking: o.parking } : null; };
+const isOff = t => String(t).startsWith("~");
+const cleanT = t => String(t).replace(/^~/, "");
+const busDayTotal = i => { const c = busChoice(); return c && S.days[i].attending ? (S.bus.days[i].tickets || 0) * c.price : 0; };
+const busGrand = () => busDayTotal(0) + busDayTotal(1);
+const foodDayTotal = i => S.days[i].attending ? S.food.days[i].tea * DATA.teaLunch.teaPrice + S.food.days[i].lunch * DATA.teaLunch.lunchPrice : 0;
+const foodGrand = () => foodDayTotal(0) + foodDayTotal(1);
+const busA = () => S.transport.mode === "shuttle" ? busGrand() : 0;
+const grandTotal = () => busA() + foodGrand();
+const money = v => "$" + Number(v).toFixed(2);
+const P_ICON = `<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#fff" stroke="#0a7d45" stroke-width="4.5"/><text x="20.5" y="29.5" text-anchor="middle" font-family="Arial" font-weight="bold" font-size="26" fill="#111">P</text></svg>`;
+const NOP_ICON = `<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#fff" stroke="#d4141c" stroke-width="4"/><text x="20.5" y="29.5" text-anchor="middle" font-family="Arial" font-weight="bold" font-size="26" fill="#111">P</text><line x1="8" y1="8" x2="32" y2="32" stroke="#d4141c" stroke-width="4"/></svg>`;
+// keep dependent answers consistent when an earlier answer changes
+function normalize() {
+  const el = parkElig(), t = S.transport;
+  if (t.mode === "park" && !el.special && !el.child) t.mode = null;
+  if (t.mode === "park") {
+    if (t.parkReason === "special" && !el.special) t.parkReason = null;
+    if (t.parkReason === "child" && !el.child) t.parkReason = null;
+    if (!t.parkReason && el.special !== el.child) t.parkReason = el.special ? "special" : "child";
+  }
+  if (t.mode === "shuttle" && !busElig()) t.mode = null;
+  const b = S.bus, o = busOpt();
+  if (!o || !o.locations) b.location = null;
+  else if (!o.locations.some(l => l.key === b.location)) b.location = null;
+  const c = busChoice();
+  S.days.forEach((d, i) => {
+    const bd = b.days[i];
+    if (c && bd.time && !c.times.map(cleanT).includes(bd.time)) bd.time = null;
+    if (c && bd.time && isOff(c.times.find(t => cleanT(t) === bd.time) || "")) bd.time = null;
+    if (!d.attending) { bd.tickets = null; bd.time = null; }
+    else if (t.mode === "shuttle" && c && bd.tickets === null) bd.tickets = dayTotal(d);
+    if (!c || !c.parking) bd.cars = null; else if (bd.cars === null) bd.cars = 1;
+    if (!d.attending) { S.food.days[i].tea = 0; S.food.days[i].lunch = 0; }
+  });
+  if (grandTotal() === 0) S.pay.method = null;
+}
+const dayTotal = d => kids(d) + d.fag + d.venue;
+
+/* =====================================================================
+   VALIDATION  — returns { field: message } for a step
+   ===================================================================== */
+const V = {
+  contact() {
+    const c = S.contact, e = {};
+    if (!c.title) e.title = "Please choose Mr. or Ms.";
+    if (!c.first.trim()) e.first = "First name is required.";
+    if (!c.last.trim()) e.last = "Last name is required.";
+    if (digits(c.phone).length !== 10) e.phone = "Enter a 10-digit phone number.";
+    if (!c.city.trim()) e.city = "City is required.";
+    if (!c.province) e.province = "Please choose a province.";
+    if (!/^[A-Z]\d[A-Z] \d[A-Z]\d$/.test(c.postal)) e.postal = "Enter a valid postal code, e.g. L6T 4L7.";
+    return e;
+  },
+  attendance() {
+    const e = {};
+    S.days.forEach((d, i) => {
+      if (d.attending === null) e["att" + i] = "Please tell us if your family is attending on " + dayName(E.days[i]) + ".";
+      else if (d.attending && dayTotal(d) === 0) e["cnt" + i] = "Enter at least one person for " + dayName(E.days[i]) + ".";
+      else if (d.attending && kids(d) > 0 && d.fag === 0) e["cnt" + i] = "Children in the Family Area need at least one parent/guardian with them.";
+      else if (d.attending && d.fag > Math.ceil(kids(d) / 4)) e["cnt" + i] = "Only 1 parent/guardian per 4 children is permitted in the Family Area (" + Math.ceil(kids(d) / 4) + " allowed for " + kids(d) + " child" + (kids(d) === 1 ? "" : "ren") + "). Extra adults should be counted in the Satsang Venue.";
+    });
+    if (S.days.every(d => d.attending === false)) e.att0 = "You have said nobody is attending on either day.";
+    return e;
+  },
+  needs() {
+    const n = S.needs, e = {};
+    if (n.translation === null) e.translation = "Please answer Yes or No.";
+    else if (n.translation && n.en + n.fr === 0) e.translation = "Enter how many members need translation.";
+    if (n.hearing === null) e.hearing = "Please answer Yes or No.";
+    else if (n.hearing && n.hearingN === 0) e.hearing = "Enter how many members need hearing assistance.";
+    if (n.special === null) e.special = "Please answer Yes or No.";
+    else if (n.special && n.specialN === 0) e.special = "Enter how many members have special needs.";
+    return e;
+  },
+  bus() {
+    const e = {}, b = S.bus, o = busOpt();
+    if (!o) e.busopt = "Please choose a bus option.";
+    else if (o.locations && !busLoc()) e.busloc = "Please choose your departure location.";
+    else S.days.forEach((d, i) => {
+      if (!d.attending) return;
+      if (!b.days[i].time) e["bt" + i] = "Please choose a departure time for " + dayName(E.days[i]) + ".";
+      if (!(b.days[i].tickets >= 1)) e["bk" + i] = "Enter at least one bus ticket for " + dayName(E.days[i]) + ".";
+    });
+    return e;
+  },
+  food() {
+    const e = {};
+    if (grandTotal() > 0 && !S.pay.method) e.pay = "Please tell us how you will be paying.";
+    return e;
+  },
+  transport() {
+    const t = S.transport, e = {};
+    if (!t.mode) e.mode = "Please choose how you will travel to the Study Centre.";
+    if (t.mode === "park") {
+      if (!t.parkReason) e.parkReason = "Please tell us why you require a parking pass.";
+      if (!(t.parkSpots >= 1)) e.parkSpots = "Enter the number of parking spots (at least 1).";
+      if (t.parkReason === "child" && !S.days.some(d => d.attending && d.fa5 > 0)) e.parkReason = "You chose “Child age 5 or under” but no child aged 5 or under is listed in Section 2.";
+      if (t.parkReason === "special" && !S.needs.special) e.parkReason = "You chose “Special Needs” but answered No to special needs in Section 5.";
+    }
+    return e;
+  }
+};
+const steps = () => [
+  { key: "contact",    name: "Contact",        validate: V.contact },
+  { key: "attendance", name: "Who’s attending", validate: V.attendance },
+  { key: "needs",      name: "Seating needs",  validate: V.needs },
+  { key: "transport",  name: "Transportation", validate: V.transport },
+  ...(S.transport.mode === "shuttle" ? [{ key: "bus", name: "Bus tickets", validate: V.bus }] : []),
+  { key: "food",       name: "Tea, lunch & payment", validate: V.food },
+  { key: "review",     name: "Review & print", validate: () => ({}) }
+];
+const stepIndex = key => steps().findIndex(s => s.key === key);
+const allErrors = () => Object.assign({}, V.contact(), V.attendance(), V.needs(), V.transport(), S.transport.mode === "shuttle" ? V.bus() : {}, V.food());
+const touch = f => { S.touched[f] = true; };
+const touchAll = f => { Object.keys(f).forEach(k => S.touched[k] = true); };
+
+/* =====================================================================
+   UI BUILDING BLOCKS
+   ===================================================================== */
+function field(key, label, errs, inputHtml, okMsg) {
+  const bad = S.touched[key] && errs[key];
+  const good = S.touched[key] && !errs[key] && okMsg !== undefined;
+  return `<div class="f ${bad ? "bad" : good ? "good" : ""}" data-f="${key}" ${okMsg !== undefined ? `data-ok="${esc(okMsg)}"` : ""}><label>${label} <span class="req">*</span></label>${inputHtml}<div class="msg">${bad ? esc(errs[key]) : good ? esc(okMsg) : ""}</div></div>`;
+}
+// update one field's colour + message without re-rendering the step (keeps focus and caret)
+function paint(key) {
+  const f = document.querySelector(`.f[data-f="${key}"]`); if (!f) return;
+  const errs = steps()[S.step].validate(), bad = !!(S.touched[key] && errs[key]), good = !!(S.touched[key] && !errs[key] && f.dataset.ok !== undefined);
+  f.classList.toggle("bad", bad); f.classList.toggle("good", good);
+  const m = f.querySelector(".msg"); if (m) m.textContent = bad ? errs[key] : good ? f.dataset.ok : "";
+}
+const textInput = (path, key, attrs = "") => `<input class="in" data-path="${path}" data-key="${key}" value="${esc(get(path))}" ${attrs}>`;
+function seg(path, key, opts, val) {
+  return `<div class="seg">${opts.map(o => `<button type="button" class="${val === o.v ? "on" : ""}" data-seg="${path}" data-key="${key}" data-v="${JSON.stringify(o.v).replace(/"/g, "&quot;")}">${esc(o.l)}</button>`).join("")}</div>`;
+}
+const stepper = (path, key, val, min = 0, max = 30) => `<div class="stepper"><button type="button" data-step="${path}" data-key="${key}" data-d="-1" ${val <= min ? "disabled" : ""} aria-label="decrease">−</button><input inputmode="numeric" data-path="${path}" data-key="${key}" data-num="1" data-min="${min}" data-max="${max}" value="${val}"><button type="button" data-step="${path}" data-key="${key}" data-d="1" ${val >= max ? "disabled" : ""} aria-label="increase">+</button></div>`;
+const srow = (label, hint, ctl) => `<div class="srow"><div class="t">${esc(label)}${hint ? `<small>${esc(hint)}</small>` : ""}</div>${ctl}</div>`;
+function get(path) { return path.split(".").reduce((o, k) => o[k], S); }
+function set(path, v) { const ks = path.split("."); const o = ks.slice(0, -1).reduce((o, k) => o[k], S); o[ks[ks.length - 1]] = v; }
+
+/* =====================================================================
+   STEP RENDERERS
+   ===================================================================== */
+const R = {
+  contact(errs) {
+    const c = S.contact;
+    return `<div class="card">
+      <h2><span class="num">1</span>Primary contact person</h2>
+      <p class="hint">One form per family. We will contact this person about the registration.</p>
+      ${field("title", "Title", errs, seg("contact.title", "title", [{ v: "Mr.", l: "Mr." }, { v: "Ms.", l: "Ms." }], c.title))}
+      <div class="row">
+        ${field("first", "First name", errs, textInput("contact.first", "first", 'autocomplete="given-name" autocapitalize="words"'), "")}
+        ${field("last", "Last name", errs, textInput("contact.last", "last", 'autocomplete="family-name" autocapitalize="words"'), "")}
+      </div>
+      ${field("phone", "Phone number", errs, textInput("contact.phone", "phone", 'type="tel" inputmode="tel" autocomplete="tel" placeholder="(___) ___-____" data-mask="phone"'), "Looks good")}
+      ${field("city", "City", errs, textInput("contact.city", "city", 'autocomplete="address-level2" autocapitalize="words"'), "")}
+      <div class="row">
+        ${field("province", "Province", errs, `<select class="in" data-path="contact.province" data-key="province">${DATA.provinces.map(p => `<option ${c.province === p ? "selected" : ""}>${p}</option>`).join("")}</select>`)}
+        ${field("postal", "Postal code", errs, textInput("contact.postal", "postal", 'autocomplete="postal-code" placeholder="A1A 1A1" data-mask="postal" style="text-transform:uppercase"'), "Looks good")}
+      </div>
+    </div>`;
+  },
+  attendance(errs) {
+    const A = DATA.attendance;
+    return `<div class="card">
+      <h2><span class="num">2</span>How many family members are attending?</h2>
+      <p class="hint">Answer for each day. Children under 10 go to the Family Area; everyone 10 and over may sit in the Satsang Venue.</p>
+      <div class="note">${esc(A.note)}</div>
+      ${S.days.map((d, i) => {
+        const bad = (S.touched["att" + i] && errs["att" + i]) || (S.touched["cnt" + i] && errs["cnt" + i]);
+        return `<div class="day ${d.attending ? "" : "off"}" data-f="att${i}">
+          <div class="dh"><b>${esc(dayName(E.days[i]))}</b>${seg(`days.${i}.attending`, "att" + i, [{ v: true, l: "Attending" }, { v: false, l: "Not attending" }], d.attending)}</div>
+          <div class="body">
+            <div class="grp-title">Family Area (children under 10)</div>
+            ${A.familyArea.map(f => srow(f.label, f.hint, stepper(`days.${i}.${f.key}`, "cnt" + i, d[f.key]))).join("")}
+            <div class="grp-title">Satsang Venue</div>
+            ${srow(A.venue.label, "", stepper(`days.${i}.venue`, "cnt" + i, d.venue, 0, 60))}
+            <div class="subtotal"><span>Total members on this day</span><span>${dayTotal(d)}</span></div>
+          </div>
+          ${bad ? `<div class="msg" style="color:var(--err); margin-top:8px">${esc(errs["att" + i] || errs["cnt" + i])}</div>` : ""}
+        </div>`; }).join("")}
+    </div>`;
+  },
+  needs(errs) {
+    const n = S.needs;
+    const yn = (path, key, v) => seg(path, key, [{ v: false, l: "No" }, { v: true, l: "Yes" }], v);
+    const block = (num, key, q, path, v, extra) => {
+      const bad = S.touched[key] && errs[key];
+      return `<div class="card ${bad ? "bad" : ""}" data-f="${key}"><h2><span class="num">${num}</span>${q}</h2><div class="f ${bad ? "bad" : ""}" style="margin-top:12px">${yn(path, key, v)}${v ? `<div class="branch">${extra}</div>` : ""}<div class="msg">${bad ? esc(errs[key]) : ""}</div></div></div>`;
+    };
+    return `<div class="note">${esc(DATA.attendance.seatingNote)}</div>
+      ${block(3, "translation", "Does anyone need simultaneous translation?", "needs.translation", n.translation,
+        `<div class="grp-title" style="margin-top:0">How many members?</div>` + DATA.translationLanguages.map(l => srow(l.label, "", stepper("needs." + l.key, "translation", n[l.key]))).join(""))}
+      ${block(4, "hearing", "Does anyone need hearing assistance?", "needs.hearing", n.hearing,
+        srow("Number of members", "", stepper("needs.hearingN", "hearing", n.hearingN)))}
+      ${block(5, "special", "Does anyone have any special needs?", "needs.special", n.special,
+        srow("Number of members", "", stepper("needs.specialN", "special", n.specialN)) + `<div class="note warn" style="margin-top:10px"><b>Please also complete the Special Needs Application Form</b> for each member and hand it in with this registration.</div>`)}`;
+  },
+  transport(errs) {
+    const t = S.transport, T = DATA.transport, el = parkElig();
+    const bad = k => S.touched[k] && errs[k];
+    const reasons = T.parkReasons.filter(r => el[r.key]);
+    return `<div class="card">
+      <h2><span class="num">6</span>How will you travel to the Study Centre?</h2>
+      <p class="hint">Select <b>only one</b> option per form.</p>
+      <div class="note">${T.guidelines.map(g => `• ${esc(g)}`).join("<br>")}</div>
+      <div class="f ${bad("mode") ? "bad" : ""}" data-f="mode"><div class="opts">
+        ${T.options.map(o => { const off = o.soon || (o.key === "park" && !el.special && !el.child) || (o.key === "shuttle" && !busElig());
+          return `<button type="button" class="opt ${t.mode === o.key ? "on" : ""} ${off ? "soon" : ""}" data-mode="${o.key}" ${off ? "disabled" : ""}><span class="radio"></span><span><span class="t">${esc(o.label)}${o.soon ? '<span class="tag">Later phase</span>' : off ? '<span class="tag">Not available</span>' : ""}</span><div class="d">${esc(off && o.ineligible ? o.ineligible : o.desc)}</div></span></button>`; }).join("")}
+      </div><div class="msg">${bad("mode") ? esc(errs.mode) : ""}</div></div>
+      ${t.mode === "taxi" ? `<div class="branch">
+        <div class="lbl">Pick-up / drop-off address</div>
+        <div style="font-size:18px; font-weight:700; line-height:1.3; margin:2px 0 8px">${T.dropOff.address.map(esc).join("<br>")}</div>
+        <p class="hint">${esc(T.dropOff.hint)}</p>
+        <div class="note warn" style="margin-bottom:12px"><b>Please note:</b> ${esc(T.dropOff.warning)}</div>
+      </div>` : ""}
+      ${t.mode === "park" ? `<div class="branch">
+        <div class="note warn" style="margin-top:0">${esc(T.parkingNote)} Not all requests may receive a car pass.</div>
+        <div class="f ${bad("parkReason") ? "bad" : ""}" data-f="parkReason"><label>Reason you require a pass <span class="req">*</span></label>
+          ${seg("transport.parkReason", "parkReason", reasons.map(r => ({ v: r.key, l: r.label })), t.parkReason)}
+          ${reasons.length === 1 ? `<div class="msg" style="color:var(--soft)">Based on your answers in Section ${reasons[0].key === "special" ? "5" : "2"}.</div>` : ""}
+          <div class="msg">${bad("parkReason") ? esc(errs.parkReason) : ""}</div></div>
+        <div class="f ${bad("parkSpots") ? "bad" : ""}" data-f="parkSpots"><label>Number of parking spots <span class="req">*</span></label>
+          ${stepper("transport.parkSpots", "parkSpots", t.parkSpots, 1, 5)}
+          <div class="msg">${bad("parkSpots") ? esc(errs.parkSpots) : ""}</div></div>
+      </div>` : ""}
+    </div>`;
+  },
+  bus(errs) {
+    const b = S.bus, o = busOpt(), c = busChoice(), bad = k => S.touched[k] && errs[k];
+    const pk = p => `<span class="pk ${p ? "yes" : "no"}">${p ? P_ICON : NOP_ICON}${p ? "Parking" : "No parking"}</span>`;
+    const priceOf = x => x.locations ? `from $${Math.min(...x.locations.map(l => l.price))}` : `$${x.price} / ticket`;
+    let html = `<div class="card">
+      <h2><span class="num">7</span>Study Centre Shuttle Buses</h2>
+      <p class="hint">Choose one departure location, then a departure time for each day you are attending. All times are AM.</p>
+      <div class="note">${DATA.busNotes.map(n => `• ${esc(n)}`).join("<br>")}</div>
+      <div class="f ${bad("busopt") ? "bad" : ""}" data-f="busopt"><div class="lbl">Bus option <span class="req" style="color:var(--err)">*</span></div><div class="opts">
+        ${DATA.busOptions.map(x => `<button type="button" class="opt ${b.option === x.key ? "on" : ""}" data-busopt="${x.key}"><span class="radio"></span><span style="flex:1"><span class="t"><span class="price">${priceOf(x)}</span>Option ${x.key}: ${esc(x.name)}${pk(x.parking)}</span><div class="d">${x.locations ? x.locations.length + " departure locations" : "Departure times from " + cleanT(x.times[0]) + " to " + cleanT(x.times[x.times.length - 1]) + " AM"}</div></span></button>`).join("")}
+      </div><div class="msg">${bad("busopt") ? esc(errs.busopt) : ""}</div></div>
+      ${o && o.locations ? `<div class="f ${bad("busloc") ? "bad" : ""}" data-f="busloc"><div class="lbl">Departure location <span class="req" style="color:var(--err)">*</span></div><div class="opts">
+        ${o.locations.map(l => `<button type="button" class="opt ${b.location === l.key ? "on" : ""}" data-busloc="${l.key}"><span class="radio"></span><span style="flex:1"><span class="t"><span class="price">$${l.price} / ticket</span>${esc(l.name)}</span><div class="d">Departs ${l.times.map(cleanT).join(", ")} AM</div></span></button>`).join("")}
+      </div><div class="msg">${bad("busloc") ? esc(errs.busloc) : ""}</div></div>` : ""}
+    </div>`;
+    if (c) {
+      html += S.days.map((d, i) => { if (!d.attending) return ""; const bd = b.days[i]; return `<div class="card">
+        <h2 style="font-size:17px">${esc(dayName(E.days[i]))}</h2>
+        <div class="f ${bad("bt" + i) ? "bad" : ""}" data-f="bt${i}"><div class="lbl">Departure time (AM) <span class="req" style="color:var(--err)">*</span></div>
+          <div class="chips">${c.times.map(t => `<button type="button" class="chip ${bd.time === cleanT(t) ? "on" : ""} ${isOff(t) ? "off" : ""}" data-bustime="${i}" data-v="${cleanT(t)}" ${isOff(t) ? "disabled" : ""}>${cleanT(t)}</button>`).join("")}</div>
+          <div class="msg">${bad("bt" + i) ? esc(errs["bt" + i]) : ""}</div></div>
+        <div class="f ${bad("bk" + i) ? "bad" : ""}" data-f="bk${i}">
+          ${srow("Bus tickets", `You listed ${dayTotal(d)} member${dayTotal(d) === 1 ? "" : "s"} for this day · $${c.price} each`, stepper(`bus.days.${i}.tickets`, "bk" + i, bd.tickets || 0, 0, 60))}
+          ${c.parking ? srow("Cars parking at " + (busLoc() ? busLoc().name.split(": ").pop() : o.name), "set to 0 if you are being dropped off", stepper(`bus.days.${i}.cars`, "bk" + i, bd.cars || 0, 0, 5)) : ""}
+          <div class="msg">${bad("bk" + i) ? esc(errs["bk" + i]) : ""}</div>
+          ${!bad("bk" + i) && bd.tickets >= 1 && bd.tickets !== dayTotal(d) ? `<div class="msg warn">⚠ ${bd.tickets} ticket${bd.tickets === 1 ? "" : "s"} but ${dayTotal(d)} member${dayTotal(d) === 1 ? "" : "s"} listed for this day. Everyone travelling by bus needs a ticket — please check Section 2 or the number of tickets.</div>` : ""}</div>
+        <div class="subtotal"><span>Bus total for this day</span><span>${money(busDayTotal(i))}</span></div>
+      </div>`; }).join("");
+      html += `<div class="total"><span>Bus total<small>${esc(c.name)} · roundtrip, non-refundable</small></span><span>${money(busGrand())}</span></div>`;
+    }
+    return html;
+  },
+  food(errs) {
+    const T = DATA.teaLunch, bad = S.touched.pay && errs.pay, total = grandTotal();
+    const line = (k, v, cls = "") => `<div class="${cls}"><span>${k}</span><span>${v}</span></div>`;
+    return `<div class="card">
+      <h2><span class="num">9</span>Tea &amp; packed lunch</h2>
+      <p class="hint">Optional. Order for each day you are attending. ${esc(T.note)}</p>
+      ${S.days.map((d, i) => !d.attending ? "" : `<div class="day"><div class="dh"><b>${esc(dayName(E.days[i]))}</b><span class="hint" style="margin:0">${dayTotal(d)} member${dayTotal(d) === 1 ? "" : "s"}</span></div><div class="body">
+        ${srow("Tea", `${esc(T.teaHint)} · ${money(T.teaPrice)} each`, stepper(`food.days.${i}.tea`, "food", S.food.days[i].tea, 0, 60))}
+        ${srow("Packed lunch", `${esc(T.lunchHint)} · ${money(T.lunchPrice)} each`, stepper(`food.days.${i}.lunch`, "food", S.food.days[i].lunch, 0, 60))}
+        <div class="subtotal"><span>Tea &amp; lunch for this day</span><span>${money(foodDayTotal(i))}</span></div></div></div>`).join("")}
+    </div>
+    <div class="card">
+      <h2><span class="num">10</span>Total payment</h2>
+      <p class="hint">Payment is made at your local Satsang Centre when you hand in the printed form.</p>
+      <div class="sum">
+        ${S.transport.mode === "shuttle" ? line(`<span><span class="ref">A</span>Bus tickets</span>`, money(busA())) : ""}
+        ${line(`<span><span class="ref">B</span>Tea &amp; packed lunch</span>`, money(foodGrand()))}
+        ${line("Total payment enclosed", money(total), "g")}
+      </div>
+      ${total > 0 ? `<div class="f ${bad ? "bad" : ""}" data-f="pay"><label>Paying by <span class="req">*</span></label>
+        ${seg("pay.method", "pay", [{ v: "cash", l: "Cash" }, { v: "cheque", l: "Cheque" }], S.pay.method)}
+        <div class="msg">${bad ? esc(errs.pay) : S.pay.method === "cheque" ? `Cheque payable to <b>${esc(DATA.chequePayableTo)}</b>` : ""}</div></div>`
+      : `<div class="note">Nothing to pay — you have not ordered bus tickets, tea or lunch.</div>`}
+    </div>`;
+  },
+  review() {
+    const errs = allErrors(), c = S.contact, n = S.needs, t = S.transport;
+    const issues = Object.entries(errs);
+    const stepOf = k => /^(title|first|last|phone|city|province|postal)$/.test(k) ? 0 : /^(att|cnt)/.test(k) ? 1 : /^(translation|hearing|special)$/.test(k) ? 2 : /^(bus|bt|bk)/.test(k) ? stepIndex("bus") : k === "pay" ? stepIndex("food") : 3;
+    const row = (k, v, empty) => `<div class="rv"><span class="k">${k}</span><span class="v ${empty ? "empty" : ""}">${v}</span></div>`;
+    const yn = v => v === null ? "—" : v ? "Yes" : "No";
+    const opt = T => (T.options.find(o => o.key === t.mode) || {}).label || "—";
+    const reason = (DATA.transport.parkReasons.find(r => r.key === t.parkReason) || {}).label || "—";
+    return `${issues.length ? `<div class="card"><h2 style="color:var(--err)">Please fix ${issues.length} item${issues.length > 1 ? "s" : ""} before printing</h2>
+        <ul class="check">${issues.map(([k, m]) => `<li><a href="#" data-goto="${stepOf(k)}" data-focus="${k}">${esc(m)}</a></li>`).join("")}</ul></div>`
+      : `<div class="card"><p class="allgood" style="margin:0">✓ Everything looks complete. Print this form (or save it as a PDF), sign it, and hand it in at your local Satsang Centre.</p></div>`}
+      <div class="card"><h2>1 &nbsp;Contact <button class="edit" data-goto="0">Edit</button></h2>
+        ${row("Name", esc([c.title, c.first, c.last].filter(Boolean).join(" ")) || "—", !c.first)}
+        ${row("Phone", esc(c.phone) || "—", !c.phone)}
+        ${row("Address", esc([c.city, c.province, c.postal].filter(Boolean).join(", ")) || "—", !c.city)}
+      </div>
+      <div class="card"><h2>2 &nbsp;Attending <button class="edit" data-goto="1">Edit</button></h2>
+        ${S.days.map((d, i) => row(esc(dayName(E.days[i])), d.attending === null ? "—" : d.attending ? `${dayTotal(d)} member${dayTotal(d) === 1 ? "" : "s"} <span style="font-weight:400;color:var(--soft)">(Family Area ${kids(d) + d.fag}, Venue ${d.venue})</span>` : "Not attending", d.attending === null)).join("")}
+      </div>
+      <div class="card"><h2>3–5 &nbsp;Seating needs <button class="edit" data-goto="2">Edit</button></h2>
+        ${row("Translation", n.translation ? `Yes — ${n.en} English, ${n.fr} French` : yn(n.translation), n.translation === null)}
+        ${row("Hearing assistance", n.hearing ? `Yes — ${n.hearingN}` : yn(n.hearing), n.hearing === null)}
+        ${row("Special needs", n.special ? `Yes — ${n.specialN}` : yn(n.special), n.special === null)}
+      </div>
+      <div class="card"><h2>6 &nbsp;Transportation <button class="edit" data-goto="3">Edit</button></h2>
+        ${row("Option", esc(opt(DATA.transport)), !t.mode)}
+        ${t.mode === "park" ? row("Reason", esc(reason), !t.parkReason) + row("Parking spots", t.parkSpots) : ""}
+        ${t.mode === "taxi" ? row("Drop-off address", DATA.transport.dropOff.address.map(esc).join("<br>")) : ""}
+      </div>
+      ${t.mode === "shuttle" ? (() => { const bc = busChoice(); return `<div class="card"><h2>7 &nbsp;Bus tickets <button class="edit" data-goto="${stepIndex("bus")}">Edit</button></h2>
+        ${row("Departure", bc ? esc(bc.name) : "—", !bc)}
+        ${S.days.map((d, i) => !d.attending ? "" : row(esc(dayName(E.days[i])), S.bus.days[i].time ? `${S.bus.days[i].time} AM · ${S.bus.days[i].tickets} ticket${S.bus.days[i].tickets === 1 ? "" : "s"}${bc && bc.parking ? ` · ${S.bus.days[i].cars} car${S.bus.days[i].cars === 1 ? "" : "s"}` : ""}` : "—", !S.bus.days[i].time)).join("")}
+        ${row("Bus total", money(busGrand()))}
+      </div>`; })() : ""}
+      <div class="card"><h2>9–10 &nbsp;Tea, lunch &amp; payment <button class="edit" data-goto="${stepIndex("food")}">Edit</button></h2>
+        ${S.days.map((d, i) => !d.attending ? "" : row(esc(dayName(E.days[i])), S.food.days[i].tea + S.food.days[i].lunch ? `${S.food.days[i].tea} tea · ${S.food.days[i].lunch} lunch` : "None")).join("")}
+        ${row("Total payment", `<b>${money(grandTotal())}</b>` + (S.transport.mode === "shuttle" ? ` <span style="font-weight:400;color:var(--soft)">(bus ${money(busA())} + tea &amp; lunch ${money(foodGrand())})</span>` : ""))}
+        ${grandTotal() > 0 ? row("Paying by", S.pay.method ? (S.pay.method === "cash" ? "Cash" : "Cheque") : "—", !S.pay.method) : ""}
+      </div>`;
+  }
+};
+
+/* =====================================================================
+   PRINT SHEET
+   ===================================================================== */
+function renderSheet() {
+  const c = S.contact, n = S.needs, t = S.transport, A = DATA.attendance;
+  const opt = (DATA.transport.options.find(o => o.key === t.mode) || {}).label || "";
+  const reason = (DATA.transport.parkReasons.find(r => r.key === t.parkReason) || {}).label || "";
+  const pr = (k, v) => `<div class="pr"><span class="k">${k}</span><span class="v">${v}</span></div>`;
+  const yn = v => v ? "Yes" : "No";
+  $("#sheet").innerHTML = `
+    <div class="ph"><div><div class="kicker">Registration Form</div><h1>${esc(E.title)}</h1><div class="dates">${esc(dayName(D1))} &amp; ${esc(dayName(D2))} ${esc(E.year)}</div></div>
+      <div class="contact">For additional information<br><b>${esc(E.website)}</b><br><b>${esc(E.phone)}</b></div></div>
+    <div class="ps"><h3>1. Primary contact person</h3>
+      ${pr("Name", esc([c.title, c.first, c.last].filter(Boolean).join(" ")))}${pr("Phone", esc(c.phone))}${pr("City / Province / Postal", esc([c.city, c.province, c.postal].filter(Boolean).join(", ")))}</div>
+    <div class="ps"><h3>2. Family members attending</h3>
+      <table class="pt"><tr><th>Day</th><th>Attending?</th>${A.familyArea.map(f => `<th>${esc(f.label)}</th>`).join("")}<th>${esc(A.venue.label)}</th><th>Total</th></tr>
+      ${S.days.map((d, i) => `<tr><td>${esc(E.days[i].short)}</td><td>${d.attending ? "Yes" : "No"}</td>${A.familyArea.map(f => `<td>${d.attending ? d[f.key] : "—"}</td>`).join("")}<td>${d.attending ? d.venue : "—"}</td><td><b>${d.attending ? dayTotal(d) : "—"}</b></td></tr>`).join("")}</table></div>
+    <div class="ps"><h3>3–5. Seating needs</h3>
+      ${pr("3. Simultaneous translation", n.translation ? `Yes — Punjabi/Hindi to English: ${n.en}; Punjabi/Hindi/English to French: ${n.fr}` : yn(n.translation))}
+      ${pr("4. Hearing assistance", n.hearing ? `Yes — ${n.hearingN} member${n.hearingN === 1 ? "" : "s"}` : yn(n.hearing))}
+      ${pr("5. Special needs", n.special ? `Yes — ${n.specialN} member${n.specialN === 1 ? "" : "s"} (Special Needs Application Form attached)` : yn(n.special))}</div>
+    <div class="ps"><h3>6. Mode of transportation to the Study Centre</h3>
+      <div class="pbox"><b>${esc(opt)}</b>${t.mode === "park" ? `<br>Reason for pass: <b>${esc(reason)}</b> &nbsp;·&nbsp; Number of parking spots: <b>${t.parkSpots}</b><br><span style="font-size:8.5pt;color:var(--soft)">Parking space is limited and not all requests may receive a car pass.</span>` : ""}${t.mode === "shuttle" && busChoice() ? ` — <b>${esc(busChoice().name)}</b> (see Section 7)` : ""}${t.mode === "taxi" ? `<br>Pick-up / drop-off address: <b>${DATA.transport.dropOff.address.map(esc).join(" ")}</b><br><span style="font-size:8.5pt;color:var(--soft)">${esc(DATA.transport.dropOff.warning)}</span>` : ""}</div></div>
+    ${t.mode === "shuttle" && busChoice() ? (() => { const bc = busChoice(); return `<div class="ps"><h3>7. Study Centre Shuttle Buses — bus ticket order</h3>
+      <table class="pt"><tr><th>Day</th><th>Departure location</th><th>Departure time</th><th># of tickets</th><th>Price</th><th>Bus total</th>${bc.parking ? "<th># of cars parking</th>" : ""}</tr>
+      ${S.days.map((d, i) => `<tr><td>${esc(E.days[i].short)}</td>${d.attending ? `<td style="text-align:left">${esc(bc.name)}</td><td>${esc(S.bus.days[i].time)} AM</td><td>${S.bus.days[i].tickets}</td><td>${money(bc.price)}</td><td><b>${money(busDayTotal(i))}</b></td>${bc.parking ? `<td>${S.bus.days[i].cars}</td>` : ""}` : `<td colspan="${bc.parking ? 6 : 5}" style="text-align:left;color:var(--soft)">Not attending</td>`}</tr>`).join("")}
+      <tr><td colspan="${bc.parking ? 5 : 4}" style="text-align:right">Bus Total (A)</td><td><b>${money(busGrand())}</b></td>${bc.parking ? "<td></td>" : ""}</tr></table>
+      <div style="font-size:7.5pt;color:var(--soft);line-height:1.2">${DATA.busNotes.map(esc).join(" ")}</div></div>`; })() : ""}
+    <div class="ps"><h3>9–10. Tea &amp; packed lunch · Total payment</h3>
+      <div style="display:flex; gap:12pt; align-items:flex-start">
+      <table class="pt" style="flex:1"><tr><th>Day</th><th># of Tea (${money(DATA.teaLunch.teaPrice)})</th><th># of Lunch (${money(DATA.teaLunch.lunchPrice)})</th><th>Tea &amp; lunch total</th></tr>
+        ${S.days.map((d, i) => `<tr><td>${esc(E.days[i].short)}</td>${d.attending ? `<td>${S.food.days[i].tea}</td><td>${S.food.days[i].lunch}</td><td><b>${money(foodDayTotal(i))}</b></td>` : `<td colspan="3" style="text-align:left;color:var(--soft)">Not attending</td>`}</tr>`).join("")}
+        <tr><td colspan="3" style="text-align:right">Tea &amp; Lunch Total (B)</td><td><b>${money(foodGrand())}</b></td></tr></table>
+      <table class="pt" style="flex:1"><tr><th colspan="2" style="text-align:left">Total payment enclosed</th></tr>
+        ${t.mode === "shuttle" ? `<tr><td>Bus Total (A)</td><td>${money(busA())}</td></tr>` : ""}
+        <tr><td>Tea &amp; Lunch Total (B)</td><td>${money(foodGrand())}</td></tr>
+        <tr><td><b>Total Payment</b></td><td><b>${money(grandTotal())}</b></td></tr>
+        <tr><td>Paying by</td><td style="text-align:left">${grandTotal() > 0 ? `${S.pay.method === "cash" ? "☑" : "☐"} Cash &nbsp; ${S.pay.method === "cheque" ? "☑" : "☐"} Cheque` : "—"}</td></tr></table>
+      </div>
+      <div style="font-size:7.5pt;color:var(--soft);margin-top:2pt">${esc(DATA.teaLunch.note)} ${t.mode === "shuttle" || grandTotal() > 0 ? "Cheques payable to " + esc(DATA.chequePayableTo) + "." : ""}</div></div>
+    <div class="legal"><div><b>Privacy</b>${esc(DATA.legal.privacy)}</div><div><b>Consent</b>${esc(DATA.legal.consent)}</div><div><b>Disclaimer</b>${esc(DATA.legal.disclaimer)}</div></div>
+    <div class="sig"><div><div class="l">Signature</div><div class="b"></div></div><div><div class="l">Date (MM/DD)</div><div class="b"><span>, ${esc(E.year)}</span></div></div></div>
+    <div class="admin"><div class="cap">For admin use only</div><div class="grid">
+      <div>Date received<i></i></div><div>Receiving centre<i></i></div><div>Received by<i></i></div><div>Finance rep(s)<i></i></div><div>Remote<span class="cb"></span></div><div>OOT<span class="cb"></span></div></div></div>
+    <div class="pfoot"><span>${esc(DATA.version)} · build ${BUILD.number}${BUILD.preview ? " PREVIEW" : ""} · completed online ${new Date().toLocaleDateString("en-CA")}</span><span>Page 1 of 1</span></div>`;
+}
+
+/* =====================================================================
+   RENDER + EVENTS
+   ===================================================================== */
+function focusKey() {
+  const a = document.activeElement; if (!a || !a.dataset) return null;
+  if (a.dataset.path) return `[data-path="${a.dataset.path}"]`;
+  if (a.dataset.seg) return `[data-seg="${a.dataset.seg}"][data-v="${a.dataset.v}"]`;
+  if (a.dataset.step) return `[data-step="${a.dataset.step}"][data-d="${a.dataset.d}"]`;
+  if (a.dataset.mode) return `[data-mode="${a.dataset.mode}"]`;
+  if (a.dataset.busopt) return `[data-busopt="${a.dataset.busopt}"]`;
+  if (a.dataset.busloc) return `[data-busloc="${a.dataset.busloc}"]`;
+  if (a.dataset.bustime !== undefined) return `[data-bustime="${a.dataset.bustime}"][data-v="${a.dataset.v}"]`;
+  return null;
+}
+function render() {
+  normalize();
+  const keep = focusKey();
+  const step = steps()[S.step], errs = step.validate();
+  $("#preview").innerHTML = BUILD.preview ? `<b>Preview build ${BUILD.number}</b> · for review only, not for real registrations · updated ${BUILD.date}` : "";
+  $("#preview").style.display = BUILD.preview ? "" : "none";
+  $("#ev-title").textContent = E.title;
+  $("#ev-dates").textContent = `${dayName(D1)} & ${dayName(D2)} ${E.year}`;
+  $("#progress").innerHTML = steps().map((s, i) => `<span class="${i < S.step ? "done" : i === S.step ? "cur" : ""}"></span>`).join("");
+  $("#stepname").textContent = step.name;
+  $("#stepcount").textContent = `Step ${S.step + 1} of ${steps().length}`;
+  const banner = restored && S.step === 0 ? `<div class="banner">We restored the draft you started on this device. <button class="btn" data-startover="1">Start over</button></div>` : "";
+  $("#main").innerHTML = banner + R[step.key](errs);
+  const last = S.step === steps().length - 1;
+  $("#navbtns").innerHTML = `${S.step > 0 ? `<button class="btn" data-nav="-1">Back</button>` : `<button class="btn ghost" data-startover="1">Start over</button>`}
+    ${last ? `<button class="btn primary" data-print="1" ${Object.keys(allErrors()).length ? "disabled" : ""}>Print / Save as PDF</button>` : `<button class="btn primary" data-nav="1">Continue</button>`}`;
+  if (keep) { const el = document.querySelector(keep); if (el && !el.disabled) el.focus({ preventScroll: true }); }
+  save();
+}
+
+document.addEventListener("click", e => {
+  const b = e.target.closest("button, a");
+  if (!b) return;
+  if (b.dataset.nav) {
+    const d = +b.dataset.nav;
+    if (d > 0) { const errs = steps()[S.step].validate(); if (Object.keys(errs).length) { touchAll(errs); render(); const f = $(".f.bad, .day .msg, [data-f].bad"); if (f) f.scrollIntoView({ behavior: "smooth", block: "center" }); return; } }
+    S.step = Math.max(0, Math.min(steps().length - 1, S.step + d)); restored = false; window.scrollTo(0, 0); render();
+  }
+  else if (b.dataset.goto !== undefined) { e.preventDefault(); S.step = +b.dataset.goto; const errs = steps()[S.step].validate(); touchAll(errs); render(); const f = b.dataset.focus ? $(`[data-f="${b.dataset.focus}"]`) : null; if (f) f.scrollIntoView({ block: "center" }); else window.scrollTo(0, 0); }
+  else if (b.dataset.seg) { set(b.dataset.seg, JSON.parse(b.dataset.v)); touch(b.dataset.key); render(); }
+  else if (b.dataset.step) { const p = b.dataset.step, inp = $(`input[data-path="${p}"]`); const v = Math.max(+inp.dataset.min, Math.min(+inp.dataset.max, (+get(p) || 0) + +b.dataset.d)); set(p, v); touch(b.dataset.key); render(); }
+  else if (b.dataset.mode) { set("transport.mode", b.dataset.mode); touch("mode"); render(); }
+  else if (b.dataset.busopt) { S.bus.option = b.dataset.busopt; touch("busopt"); render(); }
+  else if (b.dataset.busloc) { S.bus.location = b.dataset.busloc; touch("busloc"); render(); }
+  else if (b.dataset.bustime !== undefined) { S.bus.days[+b.dataset.bustime].time = b.dataset.v; touch("bt" + b.dataset.bustime); render(); }
+  else if (b.dataset.startover) { if (confirm("Clear everything you have entered and start a new form?")) { try { localStorage.removeItem(KEY); } catch (e) {} S = blank(); restored = false; render(); window.scrollTo(0, 0); } }
+  else if (b.dataset.print) { renderSheet(); window.print(); }
+});
+document.addEventListener("input", e => {
+  const el = e.target; if (!el.dataset.path) return;
+  let v = el.value;
+  if (el.dataset.mask === "phone") { v = fmtPhone(v); el.value = v; }
+  if (el.dataset.mask === "postal") { v = fmtPostal(v); el.value = v; }
+  if (el.dataset.num) { v = Math.max(+el.dataset.min, Math.min(+el.dataset.max, parseInt(digits(v) || "0", 10))); }
+  set(el.dataset.path, v);
+  if (el.dataset.num) { touch(el.dataset.key); render(); return; }
+  paint(el.dataset.key);
+  save();
+});
+document.addEventListener("focusout", e => {
+  const el = e.target; if (!el.dataset || !el.dataset.key || el.dataset.num) return;
+  touch(el.dataset.key); paint(el.dataset.key); save();
+});
+document.addEventListener("change", e => { const el = e.target; if (el.tagName === "SELECT" && el.dataset.path) { set(el.dataset.path, el.value); touch(el.dataset.key); paint(el.dataset.key); save(); } });
+window.addEventListener("beforeprint", renderSheet);
+
+render();
+</script>
+</body>
+</html>
