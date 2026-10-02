@@ -217,7 +217,7 @@
 /* =====================================================================
    EVENT DATA  (copied from v03-data.js — keep in sync when it changes)
    ===================================================================== */
-const BUILD = { number: "0.6", date: "2026-10-02", preview: true };
+const BUILD = { number: "0.7", date: "2026-10-02", preview: true };
 const DATA = {
   version: "v03_2027 (web)",
   event: {
@@ -420,6 +420,7 @@ function normalize() {
   else { while (S.snp.length < S.needs.specialN) S.snp.push(blankSnp()); while (S.snp.length > S.needs.specialN && !hasData(S.snp[S.snp.length - 1])) S.snp.pop(); }
 }
 const dayTotal = d => kids(d) + d.fag + d.venue;
+const maxMembers = () => Math.max(0, ...S.days.filter(d => d.attending).map(dayTotal));
 
 /* =====================================================================
    VALIDATION  — returns { field: message } for a step
@@ -448,13 +449,17 @@ const V = {
     return e;
   },
   needs() {
-    const n = S.needs, e = {};
+    const n = S.needs, e = {}, cap = maxMembers();
+    const over = (count, what) => `${count} member${count === 1 ? "" : "s"} ${what}, but only ${cap} ${cap === 1 ? "member is" : "members are"} attending on any day (Section 2).`;
     if (n.translation === null) e.translation = "Please answer Yes or No.";
     else if (n.translation && n.en + n.fr === 0) e.translation = "Enter how many members need translation.";
+    else if (n.translation && n.en + n.fr > cap) e.translation = over(n.en + n.fr, "need translation");
     if (n.hearing === null) e.hearing = "Please answer Yes or No.";
     else if (n.hearing && n.hearingN === 0) e.hearing = "Enter how many members need hearing assistance.";
+    else if (n.hearing && n.hearingN > cap) e.hearing = over(n.hearingN, "need hearing assistance");
     if (n.special === null) e.special = "Please answer Yes or No.";
     else if (n.special && n.specialN === 0) e.special = "Enter how many members have special needs.";
+    else if (n.special && n.specialN > cap) e.special = over(n.specialN, "have special needs");
     return e;
   },
   bus() {
@@ -598,13 +603,14 @@ const R = {
       const bad = S.touched[key] && errs[key];
       return `<div class="card ${bad ? "bad" : ""}" data-f="${key}"><h2><span class="num">${num}</span>${q}</h2><div class="f ${bad ? "bad" : ""}" style="margin-top:12px">${yn(path, key, v)}${v ? `<div class="branch">${extra}</div>` : ""}<div class="msg">${bad ? esc(errs[key]) : ""}</div></div></div>`;
     };
-    return `<div class="note">${esc(DATA.attendance.seatingNote)}</div>
+    const cap = maxMembers();
+    return `<div class="note">${esc(DATA.attendance.seatingNote)} Your family has <b>${cap}</b> member${cap === 1 ? "" : "s"} attending, so each answer can be at most ${cap}.</div>
       ${block(3, "translation", "Does anyone need simultaneous translation?", "needs.translation", n.translation,
-        `<div class="grp-title" style="margin-top:0">How many members?</div>` + DATA.translationLanguages.map(l => srow(l.label, "", stepper("needs." + l.key, "translation", n[l.key]))).join(""))}
+        `<div class="grp-title" style="margin-top:0">How many members?</div>` + DATA.translationLanguages.map(l => srow(l.label, "", stepper("needs." + l.key, "translation", n[l.key], 0, cap))).join(""))}
       ${block(4, "hearing", "Does anyone need hearing assistance?", "needs.hearing", n.hearing,
-        srow("Number of members", "", stepper("needs.hearingN", "hearing", n.hearingN)))}
+        srow("Number of members", "", stepper("needs.hearingN", "hearing", n.hearingN, 0, cap)))}
       ${block(5, "special", "Does anyone have any special needs?", "needs.special", n.special,
-        srow("Number of members", "", stepper("needs.specialN", "special", n.specialN)) + `<div class="note" style="margin-top:10px">You will fill in a short <b>Special Needs Application</b> for each member in a later step. It prints together with this form.</div>`)}`;
+        srow("Number of members", "", stepper("needs.specialN", "special", n.specialN, 0, cap)) + `<div class="note" style="margin-top:10px">You will fill in a short <b>Special Needs Application</b> for each member in a later step. It prints together with this form.</div>`)}`;
   },
   transport(errs) {
     const t = S.transport, T = DATA.transport, el = parkElig();
