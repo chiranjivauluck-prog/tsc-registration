@@ -46,6 +46,20 @@
   .f.good .in { border-color: var(--ok); }
   .msg { font-size: 13px; margin-top: 5px; min-height: 0; }
   .msg.warn { color: var(--warn); }
+  .person { border: 1.5px solid var(--line); border-radius: 12px; padding: 14px 14px 6px; margin-bottom: 14px; background: #fff; }
+  .person .ph2 { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .person .ph2 b { font-size: 17px; }
+  .person .rm { font-size: 13px; color: var(--err); background: none; border: 0; cursor: pointer; text-decoration: underline; }
+  .person h3 { margin: 12px 0 6px; font-size: 14px; display: flex; gap: 8px; align-items: center; }
+  .person h3 .num { width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; }
+  .checks { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .chk { display: flex; align-items: center; gap: 8px; border: 1.5px solid var(--line); border-radius: 9px; padding: 9px 11px; font-size: 15px; font-weight: 600; cursor: pointer; background: #fff; text-align: left; }
+  .chk.on { border-color: var(--accent); background: var(--tint); box-shadow: inset 0 0 0 1px var(--accent); }
+  .chk .box { width: 20px; height: 20px; border: 2px solid var(--line); border-radius: 5px; flex: none; position: relative; }
+  .chk.on .box { border-color: var(--accent); background: var(--accent); }
+  .chk.on .box::after { content: ""; position: absolute; left: 6px; top: 2px; width: 5px; height: 10px; border: solid #fff; border-width: 0 2.5px 2.5px 0; transform: rotate(45deg); }
+  .addbtn { width: 100%; height: 48px; border: 1.5px dashed var(--accent); border-radius: 10px; background: #fff; color: var(--accent); font-weight: 700; font-size: 16px; cursor: pointer; margin-bottom: 14px; }
+  textarea.in { height: 72px; padding: 10px 14px; resize: vertical; line-height: 1.35; }
   .f.bad .msg { color: var(--err); }
   .f.good .msg::before { content: "✓ "; color: var(--ok); }
   .f.good .msg { color: var(--ok); }
@@ -173,6 +187,14 @@
     .admin .grid i { display: block; height: 15pt; border: .75pt solid var(--line); border-radius: 3pt; background: #fff; margin-top: 2pt; }
     .admin .grid .cb { display: block; width: 13pt; height: 13pt; border: 1.2pt solid #000; border-radius: 2.5pt; margin-top: 4pt; }
     .pfoot { display: flex; justify-content: space-between; font-size: 7pt; color: var(--soft); margin-top: 5pt; }
+    .supp { break-before: page; }
+    .supp .know { background: var(--tint); border-left: 3pt solid var(--accent); padding: 4pt 9pt; margin-bottom: 8pt; font-size: 9pt; }
+    .supp .know ul { margin: 0; padding-left: 12pt; }
+    .supp .know .warn { color: var(--err); font-weight: 700; }
+    .supp .pr { grid-template-columns: 2.4in 1fr; }
+    .supp .pr .v.long { white-space: pre-wrap; }
+    .supp .mini { display: grid; grid-template-columns: auto auto 1fr; gap: 10pt; align-items: end; margin-top: 4pt; }
+    .supp table.pt td.bx { width: .55in; height: 16pt; }
   }
 </style>
 </head>
@@ -195,7 +217,7 @@
 /* =====================================================================
    EVENT DATA  (copied from v03-data.js — keep in sync when it changes)
    ===================================================================== */
-const BUILD = { number: "0.5", date: "2026-09-30", preview: true };
+const BUILD = { number: "0.6", date: "2026-10-02", preview: true };
 const DATA = {
   version: "v03_2027 (web)",
   event: {
@@ -279,6 +301,23 @@ const DATA = {
       { key: "vmc",       name: "Vaughan: Metropolitan Centre",   price: 20, times: ["5:00", "5:30", "6:00", "6:30"] }
     ] }
   ],
+  snp: {
+    notes: [
+      "Special needs seating is reserved for individuals with special needs and, if applicable, one companion.",
+      "Both individuals must be wearing wristbands for entry.",
+      "SPECIAL NEEDS SEATING WILL NOT BE IN THE FRONT OF THE PAVILION"
+    ],
+    sex: ["Female", "Male"],
+    age: ["Age 10 or under", "Age 11 or above"],
+    companionNote: "If yes, only one companion is permitted. The companion should preferably be of the same gender and must accompany the individual with special needs at all times.",
+    needs: [
+      { key: "mobility", label: "I have limited mobility because:" },
+      { key: "nowalk",   label: "I am unable to walk or stand on my own because:" },
+      { key: "other",    label: "I have other medical or support needs because:" }
+    ],
+    equipment: ["Regular wheelchair", "Motorized wheelchair", "Cane", "Walker", "Crutches", "Oxygen machine", "Service animal", "Other", "None"],
+    version: "v01_2027 (web)"
+  },
   teaLunch: { teaPrice: 1.00, lunchPrice: 6.00, note: "Tea and lunch tickets are non-refundable.",
     teaHint: "Morning tea and cookies, 6:00–8:30 am", lunchHint: "Wrap, granola bar, cookies and a juice box, after Satsang" },
   chequePayableTo: "Science of the Soul Study Centre Canada",
@@ -295,6 +334,8 @@ const DATA = {
    ===================================================================== */
 const KEY = "tsc-registration-draft-v1";
 const blankDay = () => ({ attending: null, fa5: 0, fa9: 0, fa15: 0, fag: 0, venue: 0 });
+const hasData = p => !!(p.first || p.last || p.sex || p.age || p.need || p.equipment.length || p.info);
+const blankSnp = () => ({ first: "", last: "", sex: null, age: null, companion: null, permit: null, need: null, reason: "", equipment: [], otherEq: "", info: "" });
 const blank = () => ({
   step: 0,
   contact: { title: null, first: "", last: "", phone: "", city: "", province: "Ontario", postal: "" },
@@ -304,13 +345,14 @@ const blank = () => ({
   bus: { option: null, location: null, days: [{ time: null, tickets: null, cars: null }, { time: null, tickets: null, cars: null }] },
   food: { days: [{ tea: 0, lunch: 0 }, { tea: 0, lunch: 0 }] },
   pay: { method: null },
+  snp: [],
   touched: {}
 });
 let S = blank();
 let restored = false;
 try {
   const saved = JSON.parse(localStorage.getItem(KEY) || "null");
-  if (saved && saved.contact) { S = Object.assign(blank(), saved); S.touched = S.touched || {}; S.transport = Object.assign(blank().transport, S.transport || {}); S.bus = S.bus || blank().bus; S.food = S.food || blank().food; S.pay = S.pay || blank().pay; restored = true; }
+  if (saved && saved.contact) { S = Object.assign(blank(), saved); S.touched = S.touched || {}; S.transport = Object.assign(blank().transport, S.transport || {}); S.bus = S.bus || blank().bus; S.food = S.food || blank().food; S.pay = S.pay || blank().pay; S.snp = (S.snp || []).map(p => Object.assign(blankSnp(), p)); restored = true; }
 } catch (e) {}
 
 let saveTimer;
@@ -374,6 +416,8 @@ function normalize() {
     if (!d.attending) { S.food.days[i].tea = 0; S.food.days[i].lunch = 0; }
   });
   if (grandTotal() === 0) S.pay.method = null;
+  if (!S.needs.special) S.snp = [];
+  else { while (S.snp.length < S.needs.specialN) S.snp.push(blankSnp()); while (S.snp.length > S.needs.specialN && !hasData(S.snp[S.snp.length - 1])) S.snp.pop(); }
 }
 const dayTotal = d => kids(d) + d.fag + d.venue;
 
@@ -424,6 +468,25 @@ const V = {
     });
     return e;
   },
+  snp() {
+    const e = {};
+    if (!S.needs.special) return e;
+    if (S.snp.length !== S.needs.specialN) e.snpcount = `Section 5 says ${S.needs.specialN} member${S.needs.specialN === 1 ? "" : "s"} with special needs but ${S.snp.length} form${S.snp.length === 1 ? " is" : "s are"} listed here. Add or remove a person, or change the number in Section 5.`;
+    S.snp.forEach((p, i) => {
+      const k = x => `snp${i}.${x}`, who = `person ${i + 1}`;
+      if (!p.first.trim()) e[k("first")] = "First name is required.";
+      if (!p.last.trim()) e[k("last")] = "Last name is required.";
+      if (!p.sex) e[k("sex")] = "Please choose Female or Male.";
+      if (!p.age) e[k("age")] = "Please choose an age group.";
+      if (p.companion === null) e[k("companion")] = "Please answer Yes or No.";
+      if (p.permit === null) e[k("permit")] = "Please answer Yes or No.";
+      if (!p.need) e[k("need")] = "Please choose the statement that best describes the need.";
+      else if (!p.reason.trim()) e[k("reason")] = "Please tell us why (a few words is enough).";
+      if (!p.equipment.length) e[k("equipment")] = "Select the equipment or aid being brought, or None.";
+      if (p.equipment.includes("Other") && !p.otherEq.trim()) e[k("otherEq")] = "Please describe the other equipment.";
+    });
+    return e;
+  },
   food() {
     const e = {};
     if (grandTotal() > 0 && !S.pay.method) e.pay = "Please tell us how you will be paying.";
@@ -452,11 +515,12 @@ const steps = () => [
   { key: "needs",      name: "Seating needs",  validate: V.needs },
   { key: "transport",  name: "Transportation", validate: V.transport },
   ...(S.transport.mode === "shuttle" ? [{ key: "bus", name: "Bus tickets", validate: V.bus }] : []),
+  ...(S.needs.special ? [{ key: "snp", name: "Special needs", validate: V.snp }] : []),
   { key: "food",       name: "Tea, lunch & payment", validate: V.food },
   { key: "review",     name: "Review & print", validate: () => ({}) }
 ];
 const stepIndex = key => steps().findIndex(s => s.key === key);
-const allErrors = () => Object.assign({}, V.contact(), V.attendance(), V.needs(), V.transport(), S.transport.mode === "shuttle" ? V.bus() : {}, V.food());
+const allErrors = () => Object.assign({}, V.contact(), V.attendance(), V.needs(), V.transport(), S.transport.mode === "shuttle" ? V.bus() : {}, V.snp(), V.food());
 const touch = f => { S.touched[f] = true; };
 const touchAll = f => { Object.keys(f).forEach(k => S.touched[k] = true); };
 
@@ -540,7 +604,7 @@ const R = {
       ${block(4, "hearing", "Does anyone need hearing assistance?", "needs.hearing", n.hearing,
         srow("Number of members", "", stepper("needs.hearingN", "hearing", n.hearingN)))}
       ${block(5, "special", "Does anyone have any special needs?", "needs.special", n.special,
-        srow("Number of members", "", stepper("needs.specialN", "special", n.specialN)) + `<div class="note warn" style="margin-top:10px"><b>Please also complete the Special Needs Application Form</b> for each member and hand it in with this registration.</div>`)}`;
+        srow("Number of members", "", stepper("needs.specialN", "special", n.specialN)) + `<div class="note" style="margin-top:10px">You will fill in a short <b>Special Needs Application</b> for each member in a later step. It prints together with this form.</div>`)}`;
   },
   transport(errs) {
     const t = S.transport, T = DATA.transport, el = parkElig();
@@ -612,6 +676,45 @@ const R = {
     }
     return html;
   },
+  snp(errs) {
+    const N = DATA.snp, bad = k => S.touched[k] && errs[k];
+    const fld = (i, key, label, inner, okMsg) => field(`snp${i}.${key}`, label, errs, inner, okMsg);
+    const person = (p, i) => {
+      const k = x => `snp${i}.${x}`;
+      return `<div class="person" data-f="snp${i}">
+        <div class="ph2"><b>Person ${i + 1}${p.first ? " — " + esc(p.first) : ""}</b>${S.snp.length > 1 ? `<button type="button" class="rm" data-snprm="${i}">Remove</button>` : ""}</div>
+        <div class="row">${fld(i, "first", "First name", textInput(`snp.${i}.first`, k("first"), 'autocapitalize="words"'), "")}${fld(i, "last", "Last name", textInput(`snp.${i}.last`, k("last"), 'autocapitalize="words"'), "")}</div>
+        <div class="row">${fld(i, "sex", "Sex", seg(`snp.${i}.sex`, k("sex"), N.sex.map(x => ({ v: x, l: x })), p.sex))}${fld(i, "age", "Age group", seg(`snp.${i}.age`, k("age"), N.age.map(x => ({ v: x, l: x })), p.age))}</div>
+        <h3><span class="num">3</span>Will this person have a companion?</h3>
+        ${fld(i, "companion", "Companion", seg(`snp.${i}.companion`, k("companion"), [{ v: false, l: "No" }, { v: true, l: "Yes" }], p.companion))}
+        ${p.companion ? `<div class="note" style="margin-top:-6px">${esc(N.companionNote)}</div>` : ""}
+        <h3><span class="num">4</span>Valid government-issued accessible parking permit / placard?</h3>
+        ${fld(i, "permit", "Permit", seg(`snp.${i}.permit`, k("permit"), [{ v: false, l: "No" }, { v: true, l: "Yes" }], p.permit))}
+        <h3><span class="num">5</span>Which statement best describes the need? <span class="hint" style="margin:0;font-size:13px">choose one</span></h3>
+        <div class="f ${bad(k("need")) ? "bad" : ""}" data-f="${k("need")}"><div class="opts">
+          ${N.needs.map(o => `<button type="button" class="opt ${p.need === o.key ? "on" : ""}" data-snpneed="${i}" data-v="${o.key}"><span class="radio"></span><span class="t">${esc(o.label)}</span></button>`).join("")}
+        </div><div class="msg">${bad(k("need")) ? esc(errs[k("need")]) : ""}</div></div>
+        ${p.need ? fld(i, "reason", "Because", `<textarea class="in" data-path="snp.${i}.reason" data-key="${k("reason")}" placeholder="Briefly describe the reason">${esc(p.reason)}</textarea>`, "") : ""}
+        <h3><span class="num">6</span>Equipment or aid being brought <span class="hint" style="margin:0;font-size:13px">all that apply</span></h3>
+        <div class="f ${bad(k("equipment")) ? "bad" : ""}" data-f="${k("equipment")}"><div class="checks">
+          ${N.equipment.map(eq => `<button type="button" class="chk ${p.equipment.includes(eq) ? "on" : ""}" data-snpeq="${i}" data-v="${esc(eq)}"><span class="box"></span>${esc(eq)}</button>`).join("")}
+        </div><div class="msg">${bad(k("equipment")) ? esc(errs[k("equipment")]) : ""}</div></div>
+        ${p.equipment.includes("Other") ? fld(i, "otherEq", "Other equipment", textInput(`snp.${i}.otherEq`, k("otherEq")), "") : ""}
+        <h3><span class="num">7</span>Additional information <span class="hint" style="margin:0;font-size:13px">optional</span></h3>
+        <div class="f"><textarea class="in" data-path="snp.${i}.info" data-key="${k("info")}" placeholder="Anything else the sevadars should know"></textarea></div>
+      </div>`;
+    };
+    // textarea values can't be set via value attribute in template; patch after render
+    setTimeout(() => S.snp.forEach((p, i) => { const t = document.querySelector(`textarea[data-path="snp.${i}.info"]`); if (t && t.value !== p.info) t.value = p.info; }), 0);
+    return `<div class="card">
+      <h2><span class="num">SN</span>Special Needs Application</h2>
+      <p class="hint">One form for each member with special needs — Section 5 says <b>${S.needs.specialN}</b>. Your contact details from Section 1 are added automatically.</p>
+      <div class="note">${N.notes.map((n, i) => `• ${i === N.notes.length - 1 ? `<b style="color:var(--err)">${esc(n)}</b>` : esc(n)}`).join("<br>")}</div>
+      ${S.touched.snpcount && errs.snpcount ? `<div class="note err">${esc(errs.snpcount)}</div>` : ""}
+    </div>
+    ${S.snp.map(person).join("")}
+    <button type="button" class="addbtn" data-snpadd="1">+ Add another person</button>`;
+  },
   food(errs) {
     const T = DATA.teaLunch, bad = S.touched.pay && errs.pay, total = grandTotal();
     const line = (k, v, cls = "") => `<div class="${cls}"><span>${k}</span><span>${v}</span></div>`;
@@ -640,7 +743,7 @@ const R = {
   review() {
     const errs = allErrors(), c = S.contact, n = S.needs, t = S.transport;
     const issues = Object.entries(errs);
-    const stepOf = k => /^(title|first|last|phone|city|province|postal)$/.test(k) ? 0 : /^(att|cnt)/.test(k) ? 1 : /^(translation|hearing|special)$/.test(k) ? 2 : /^(bus|bt|bk)/.test(k) ? stepIndex("bus") : k === "pay" ? stepIndex("food") : 3;
+    const stepOf = k => /^(title|first|last|phone|city|province|postal)$/.test(k) ? 0 : /^(att|cnt)/.test(k) ? 1 : /^(translation|hearing|special)$/.test(k) ? 2 : /^(bus|bt|bk)/.test(k) ? stepIndex("bus") : /^snp/.test(k) ? stepIndex("snp") : k === "pay" ? stepIndex("food") : 3;
     const row = (k, v, empty) => `<div class="rv"><span class="k">${k}</span><span class="v ${empty ? "empty" : ""}">${v}</span></div>`;
     const yn = v => v === null ? "—" : v ? "Yes" : "No";
     const opt = T => (T.options.find(o => o.key === t.mode) || {}).label || "—";
@@ -672,6 +775,9 @@ const R = {
         ${S.days.map((d, i) => !d.attending ? "" : row(esc(dayName(E.days[i])), S.bus.days[i].time ? `${S.bus.days[i].time} AM · ${S.bus.days[i].tickets} ticket${S.bus.days[i].tickets === 1 ? "" : "s"}${bc && bc.parking ? ` · ${S.bus.days[i].cars} car${S.bus.days[i].cars === 1 ? "" : "s"}` : ""}` : "—", !S.bus.days[i].time)).join("")}
         ${row("Bus total", money(busGrand()))}
       </div>`; })() : ""}
+      ${S.needs.special ? `<div class="card"><h2>SN &nbsp;Special needs <button class="edit" data-goto="${stepIndex("snp")}">Edit</button></h2>
+        ${S.snp.map((p, i) => { const nd = (DATA.snp.needs.find(o => o.key === p.need) || {}).label || "—"; return row(`Person ${i + 1}`, (p.first || p.last) ? `${esc(p.first)} ${esc(p.last)} <span style="font-weight:400;color:var(--soft)">· ${esc(p.sex || "—")} · ${esc(p.age || "—")} · companion ${p.companion === null ? "—" : p.companion ? "yes" : "no"}</span>` : "—", !p.first); }).join("")}
+      </div>` : ""}
       <div class="card"><h2>9–10 &nbsp;Tea, lunch &amp; payment <button class="edit" data-goto="${stepIndex("food")}">Edit</button></h2>
         ${S.days.map((d, i) => !d.attending ? "" : row(esc(dayName(E.days[i])), S.food.days[i].tea + S.food.days[i].lunch ? `${S.food.days[i].tea} tea · ${S.food.days[i].lunch} lunch` : "None")).join("")}
         ${row("Total payment", `<b>${money(grandTotal())}</b>` + (S.transport.mode === "shuttle" ? ` <span style="font-weight:400;color:var(--soft)">(bus ${money(busA())} + tea &amp; lunch ${money(foodGrand())})</span>` : ""))}
@@ -700,7 +806,7 @@ function renderSheet() {
     <div class="ps"><h3>3–5. Seating needs</h3>
       ${pr("3. Simultaneous translation", n.translation ? `Yes — Punjabi/Hindi to English: ${n.en}; Punjabi/Hindi/English to French: ${n.fr}` : yn(n.translation))}
       ${pr("4. Hearing assistance", n.hearing ? `Yes — ${n.hearingN} member${n.hearingN === 1 ? "" : "s"}` : yn(n.hearing))}
-      ${pr("5. Special needs", n.special ? `Yes — ${n.specialN} member${n.specialN === 1 ? "" : "s"} (Special Needs Application Form attached)` : yn(n.special))}</div>
+      ${pr("5. Special needs", n.special ? `Yes — ${n.specialN} member${n.specialN === 1 ? "" : "s"}: ${S.snp.map(p => esc(p.first + " " + p.last).trim()).join(", ")} (Special Needs Application attached, ${S.snp.length} page${S.snp.length === 1 ? "" : "s"})` : yn(n.special))}</div>
     <div class="ps"><h3>6. Mode of transportation to the Study Centre</h3>
       <div class="pbox"><b>${esc(opt)}</b>${t.mode === "park" ? `<br>Reason for pass: <b>${esc(reason)}</b> &nbsp;·&nbsp; Number of parking spots: <b>${t.parkSpots}</b><br><span style="font-size:8.5pt;color:var(--soft)">Parking space is limited and not all requests may receive a car pass.</span>` : ""}${t.mode === "shuttle" && busChoice() ? ` — <b>${esc(busChoice().name)}</b> (see Section 7)` : ""}${t.mode === "charter" ? `<br>Arranged by: <b>${esc((DATA.transport.charter.arrangedBy.find(a => a.key === t.charterBy) || {}).label || "")}</b> &nbsp;·&nbsp; ${t.charterBy === "centre" ? "Satsang Centre" : "Bus organizer"}: <b>${esc(t.charterName)}</b> &nbsp;·&nbsp; Departure location: <b>${esc(t.charterFrom)}</b><br><span style="font-size:8.5pt;color:var(--soft)">This form is submitted by the bus organizer together with the other passengers’ forms.</span>` : ""}${t.mode === "taxi" ? `<br>Pick-up / drop-off address: <b>${DATA.transport.dropOff.address.map(esc).join(" ")}</b><br><span style="font-size:8.5pt;color:var(--soft)">${esc(DATA.transport.dropOff.warning)}</span>` : ""}</div></div>
     ${t.mode === "shuttle" && busChoice() ? (() => { const bc = busChoice(); return `<div class="ps"><h3>7. Study Centre Shuttle Buses — bus ticket order</h3>
@@ -724,7 +830,41 @@ function renderSheet() {
     <div class="sig"><div><div class="l">Signature</div><div class="b"></div></div><div><div class="l">Date (MM/DD)</div><div class="b"><span>, ${esc(E.year)}</span></div></div></div>
     <div class="admin"><div class="cap">For admin use only</div><div class="grid">
       <div>Date received<i></i></div><div>Receiving centre<i></i></div><div>Received by<i></i></div><div>Finance rep(s)<i></i></div><div>Remote<span class="cb"></span></div><div>OOT<span class="cb"></span></div></div></div>
-    <div class="pfoot"><span>${esc(DATA.version)} · build ${BUILD.number}${BUILD.preview ? " PREVIEW" : ""} · completed online ${new Date().toLocaleDateString("en-CA")}</span><span>Page 1 of 1</span></div>`;
+    <div class="pfoot"><span>${esc(DATA.version)} · build ${BUILD.number}${BUILD.preview ? " PREVIEW" : ""} · completed online ${new Date().toLocaleDateString("en-CA")}</span><span>Page 1 of ${1 + (n.special ? S.snp.length : 0)}</span></div>`
+    + (n.special ? S.snp.map((p, i) => suppSheet(p, i)).join("") : "");
+}
+function suppSheet(p, i) {
+  const c = S.contact, N = DATA.snp, total = 1 + S.snp.length;
+  const pr = (k, v, cls = "") => `<div class="pr"><span class="k">${k}</span><span class="v ${cls}">${v}</span></div>`;
+  const yn = v => v === null ? "—" : v ? "Yes" : "No";
+  const need = (N.needs.find(o => o.key === p.need) || {}).label || "—";
+  const eq = p.equipment.map(e => e === "Other" ? `Other: ${esc(p.otherEq)}` : esc(e)).join(", ") || "—";
+  return `<div class="supp">
+    <div class="ph"><div><div class="kicker">Special Needs Application Form · Supplement to Registration Form${S.snp.length > 1 ? ` · ${i + 1} of ${S.snp.length}` : ""}</div><h1>${esc(E.title)}</h1><div class="dates">${esc(dayName(D1))} &amp; ${esc(dayName(D2))} ${esc(E.year)}</div></div>
+      <div class="contact">For additional information<br><b>${esc(E.website)}</b><br><b>${esc(E.phone)}</b></div></div>
+    <div class="know"><ul>${N.notes.map((n, j) => `<li class="${j === N.notes.length - 1 ? "warn" : ""}">${esc(n)}</li>`).join("")}</ul></div>
+    <div class="ps"><h3>1. Individual with special needs</h3>
+      ${pr("Name", esc(p.first + " " + p.last))}${pr("Sex / age group", `${esc(p.sex || "—")} &nbsp;·&nbsp; ${esc(p.age || "—")}`)}</div>
+    <div class="ps"><h3>2. Primary contact information (from Registration Form)</h3>
+      ${pr("Primary contact", esc([c.title, c.first, c.last].filter(Boolean).join(" ")))}${pr("Phone", esc(c.phone))}</div>
+    <div class="ps"><h3>3–4. Companion and parking permit</h3>
+      ${pr("3. Companion", yn(p.companion) + (p.companion ? ` <span style="font-weight:400;color:var(--soft)">— ${esc(N.companionNote)}</span>` : ""))}
+      ${pr("4. Accessible parking permit / placard", yn(p.permit))}</div>
+    <div class="ps"><h3>5. Statement that best describes the need</h3>
+      <div class="pbox"><b>${esc(need)}</b> ${esc(p.reason)}</div></div>
+    <div class="ps"><h3>6. Equipment or aid being brought</h3><div class="pbox">${eq}</div></div>
+    <div class="ps"><h3>7. Additional information</h3><div class="pbox" style="min-height:28pt">${esc(p.info) || "<span style='color:var(--soft)'>—</span>"}</div></div>
+    <div class="legal" style="grid-template-columns:1fr 1fr"><div><b>Privacy</b>${esc(DATA.legal.privacy)}</div><div><b>Consent</b>${esc(DATA.legal.consent)}</div></div>
+    <div class="sig"><div><div class="l">Signature of Special Needs Applicant</div><div class="b"></div></div><div><div class="l">Date (MM/DD)</div><div class="b"><span>, ${esc(E.year)}</span></div></div></div>
+    <div class="admin"><div class="cap">For admin use only</div>
+      <div class="grid" style="grid-template-columns:1fr"><div>Notes<i style="height:24pt"></i></div></div>
+      <div class="mini">
+        <table class="pt"><tr><th></th><th>${esc(D1.short)}</th><th>${esc(D2.short)}</th></tr><tr><td>SNP</td><td class="bx"></td><td class="bx"></td></tr><tr><td>Comp.</td><td class="bx"></td><td class="bx"></td></tr></table>
+        <table class="pt"><tr><th></th><th>${esc(D1.short)}</th><th>${esc(D2.short)}</th></tr><tr><td>Hearing assist.</td><td class="bx">☐</td><td class="bx">☐</td></tr><tr><td>Simultaneous trans.</td><td class="bx">☐</td><td class="bx">☐</td></tr></table>
+        <div class="grid" style="grid-template-columns:2fr 1fr"><div>Authorized Sevadar signature<i></i></div><div>Date (MM/DD)<i></i></div></div>
+      </div></div>
+    <div class="pfoot"><span>${esc(N.version)} · build ${BUILD.number}${BUILD.preview ? " PREVIEW" : ""} · completed online ${new Date().toLocaleDateString("en-CA")}</span><span>Page ${i + 2} of ${total}</span></div>
+  </div>`;
 }
 
 /* =====================================================================
@@ -737,6 +877,8 @@ function focusKey() {
   if (a.dataset.step) return `[data-step="${a.dataset.step}"][data-d="${a.dataset.d}"]`;
   if (a.dataset.mode) return `[data-mode="${a.dataset.mode}"]`;
   if (a.dataset.busopt) return `[data-busopt="${a.dataset.busopt}"]`;
+  if (a.dataset.snpneed !== undefined) return `[data-snpneed="${a.dataset.snpneed}"][data-v="${a.dataset.v}"]`;
+  if (a.dataset.snpeq !== undefined) return `[data-snpeq="${a.dataset.snpeq}"][data-v="${a.dataset.v}"]`;
   if (a.dataset.busloc) return `[data-busloc="${a.dataset.busloc}"]`;
   if (a.dataset.bustime !== undefined) return `[data-bustime="${a.dataset.bustime}"][data-v="${a.dataset.v}"]`;
   return null;
@@ -773,6 +915,10 @@ document.addEventListener("click", e => {
   else if (b.dataset.seg) { set(b.dataset.seg, JSON.parse(b.dataset.v)); touch(b.dataset.key); render(); }
   else if (b.dataset.step) { const p = b.dataset.step, inp = $(`input[data-path="${p}"]`); const v = Math.max(+inp.dataset.min, Math.min(+inp.dataset.max, (+get(p) || 0) + +b.dataset.d)); set(p, v); touch(b.dataset.key); render(); }
   else if (b.dataset.mode) { set("transport.mode", b.dataset.mode); touch("mode"); render(); }
+  else if (b.dataset.snpadd) { S.snp.push(blankSnp()); S.needs.specialN = S.snp.length; touch("snpcount"); render(); }
+  else if (b.dataset.snprm !== undefined) { S.snp.splice(+b.dataset.snprm, 1); S.needs.specialN = S.snp.length; touch("snpcount"); render(); }
+  else if (b.dataset.snpneed !== undefined) { S.snp[+b.dataset.snpneed].need = b.dataset.v; touch(`snp${b.dataset.snpneed}.need`); render(); }
+  else if (b.dataset.snpeq !== undefined) { const p = S.snp[+b.dataset.snpeq], v = b.dataset.v; if (v === "None") p.equipment = p.equipment.includes("None") ? [] : ["None"]; else { p.equipment = p.equipment.filter(x => x !== "None"); p.equipment = p.equipment.includes(v) ? p.equipment.filter(x => x !== v) : [...p.equipment, v]; } touch(`snp${b.dataset.snpeq}.equipment`); render(); }
   else if (b.dataset.busopt) { S.bus.option = b.dataset.busopt; touch("busopt"); render(); }
   else if (b.dataset.busloc) { S.bus.location = b.dataset.busloc; touch("busloc"); render(); }
   else if (b.dataset.bustime !== undefined) { S.bus.days[+b.dataset.bustime].time = b.dataset.v; touch("bt" + b.dataset.bustime); render(); }
