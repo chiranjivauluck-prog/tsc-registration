@@ -217,7 +217,7 @@
 /* =====================================================================
    EVENT DATA  (copied from v03-data.js — keep in sync when it changes)
    ===================================================================== */
-const BUILD = { number: "0.7", date: "2026-10-02", preview: true };
+const BUILD = { number: "0.8", date: "2026-10-02", preview: true };
 const DATA = {
   version: "v03_2027 (web)",
   event: {
@@ -470,6 +470,7 @@ const V = {
       if (!d.attending) return;
       if (!b.days[i].time) e["bt" + i] = "Please choose a departure time for " + dayName(E.days[i]) + ".";
       if (!(b.days[i].tickets >= 1)) e["bk" + i] = "Enter at least one bus ticket for " + dayName(E.days[i]) + ".";
+      else if (b.days[i].tickets > dayTotal(d)) e["bk" + i] = `${b.days[i].tickets} bus tickets but only ${dayTotal(d)} member${dayTotal(d) === 1 ? "" : "s"} listed for ${dayName(E.days[i])} in Section 2. Tickets cannot exceed the members attending.`;
     });
     return e;
   },
@@ -672,10 +673,10 @@ const R = {
           <div class="chips">${c.times.map(t => `<button type="button" class="chip ${bd.time === cleanT(t) ? "on" : ""} ${isOff(t) ? "off" : ""}" data-bustime="${i}" data-v="${cleanT(t)}" ${isOff(t) ? "disabled" : ""}>${cleanT(t)}</button>`).join("")}</div>
           <div class="msg">${bad("bt" + i) ? esc(errs["bt" + i]) : ""}</div></div>
         <div class="f ${bad("bk" + i) ? "bad" : ""}" data-f="bk${i}">
-          ${srow("Bus tickets", `You listed ${dayTotal(d)} member${dayTotal(d) === 1 ? "" : "s"} for this day · $${c.price} each`, stepper(`bus.days.${i}.tickets`, "bk" + i, bd.tickets || 0, 0, 60))}
+          ${srow("Bus tickets", `You listed ${dayTotal(d)} member${dayTotal(d) === 1 ? "" : "s"} for this day · $${c.price} each`, stepper(`bus.days.${i}.tickets`, "bk" + i, bd.tickets || 0, 0, dayTotal(d)))}
           ${c.parking ? srow("Cars parking at " + (busLoc() ? busLoc().name.split(": ").pop() : o.name), "set to 0 if you are being dropped off", stepper(`bus.days.${i}.cars`, "bk" + i, bd.cars || 0, 0, 5)) : ""}
           <div class="msg">${bad("bk" + i) ? esc(errs["bk" + i]) : ""}</div>
-          ${!bad("bk" + i) && bd.tickets >= 1 && bd.tickets !== dayTotal(d) ? `<div class="msg warn">⚠ ${bd.tickets} ticket${bd.tickets === 1 ? "" : "s"} but ${dayTotal(d)} member${dayTotal(d) === 1 ? "" : "s"} listed for this day. Everyone travelling by bus needs a ticket — please check Section 2 or the number of tickets.</div>` : ""}</div>
+          ${!bad("bk" + i) && bd.tickets >= 1 && bd.tickets < dayTotal(d) ? `<div class="msg warn">⚠ ${bd.tickets} ticket${bd.tickets === 1 ? "" : "s"} but ${dayTotal(d)} member${dayTotal(d) === 1 ? "" : "s"} listed for this day. Everyone travelling by bus needs a ticket — please check Section 2 or the number of tickets.</div>` : ""}</div>
         <div class="subtotal"><span>Bus total for this day</span><span>${money(busDayTotal(i))}</span></div>
       </div>`; }).join("");
       html += `<div class="total"><span>Bus total<small>${esc(c.name)} · roundtrip, non-refundable</small></span><span>${money(busGrand())}</span></div>`;
