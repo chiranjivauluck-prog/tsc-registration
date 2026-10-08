@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Online registration form — how it works and why it is safe</title>
+<style>
+  :root { --ink: #16282b; --soft: #4c6064; --accent: #0b5563; --tint: #e7f0f1; --line: #b8c8cb; --hair: #dfe8e9; --ok: #0a6b3c; --okbg: #e9f5ee; --warn: #9a5b00; --warn-bg: #fff6e5; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif; color: var(--ink); background: #eef2f3; font-size: 16px; line-height: 1.5; }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 0 0 40px; }
+  .top { background: #fff; padding: 18px 20px 14px; border-bottom: 3px solid var(--accent); }
+  .kicker { font-size: 11px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: var(--accent); }
+  h1 { margin: 2px 0 0; font-size: 23px; line-height: 1.2; }
+  .sub { color: var(--soft); font-size: 14px; margin-top: 4px; }
+  main { padding: 16px; }
+  .card { background: #fff; border-radius: 12px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,.08); margin-bottom: 14px; }
+  h2 { margin: 0 0 10px; font-size: 18px; }
+  h3 { margin: 14px 0 4px; font-size: 15px; }
+  p { margin: 0 0 10px; }
+  p:last-child, ul:last-child { margin-bottom: 0; }
+  ul { padding-left: 22px; margin: 0 0 10px; }
+  li { margin-bottom: 6px; }
+  .ok { background: var(--okbg); border-left: 4px solid var(--ok); border-radius: 0 8px 8px 0; padding: 10px 12px; font-size: 15px; margin: 0 0 12px; }
+  .warn { background: var(--warn-bg); border-left: 4px solid var(--warn); border-radius: 0 8px 8px 0; padding: 10px 12px; font-size: 15px; margin: 0 0 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; margin: 6px 0 4px; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--hair); vertical-align: top; }
+  th { background: var(--tint); font-size: 13px; letter-spacing: .3px; text-transform: uppercase; color: var(--soft); }
+  td:first-child { font-weight: 600; width: 34%; }
+  .tick::before { content: "\2713  "; color: var(--ok); font-weight: 700; }
+  .cross::before { content: "\2014  "; color: var(--soft); }
+  .flow { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .flow div { background: var(--tint); border-radius: 8px; padding: 10px 12px; font-size: 15px; }
+  .flow div b { display: block; color: var(--accent); font-size: 13px; letter-spacing: .5px; text-transform: uppercase; margin-bottom: 2px; }
+  @media (min-width: 560px) { .flow { grid-template-columns: repeat(4, 1fr); } }
+  .btn { display: block; text-align: center; background: var(--accent); color: #fff; text-decoration: none; font-weight: 700; font-size: 17px; padding: 15px; border-radius: 10px; margin: 6px 0 4px; }
+  .btn:hover { background: #083f4a; }
+  .small { font-size: 13px; color: var(--soft); }
+  .foot { text-align: center; color: var(--soft); font-size: 12px; margin-top: 10px; }
+  @media print { body { background: #fff; } .card { box-shadow: none; border: 1px solid var(--hair); break-inside: avoid; } .btn { display: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="kicker">Master&rsquo;s Toronto Satsang Program &middot; for leadership</div>
+    <h1>The online registration form: how it works and why it is safe</h1>
+    <div class="sub">A plain-language summary for approval &middot; October 2026</div>
+  </header>
+  <main>
+
+    <div class="card">
+      <h2>In one paragraph</h2>
+      <p>Today the sangat downloads a PDF from torontoprogram.org, prints it, fills it in by hand and brings it to Satsang. The proposal is to add a second option on the same website: a web page that asks the same questions one at a time, checks the answers as they are typed, adds up the totals, and prints the same one-page form ready to sign and bring in. <b>It stores nothing anywhere.</b> The sangat&rsquo;s details stay on their own phone or computer, exactly as a printed PDF does today. The paper form continues unchanged for anyone who prefers it.</p>
+      <div class="ok"><b>What we are asking leadership to approve:</b> adding this page to the website alongside the existing PDF, and a &ldquo;fast lane&rdquo; at registration for forms completed this way.</div>
+    </div>
+
+    <div class="card">
+      <h2>What happens to the information</h2>
+      <div class="flow">
+        <div><b>1 &middot; Open</b>The page loads from the website &mdash; nothing else is downloaded or installed.</div>
+        <div><b>2 &middot; Fill in</b>Everything typed stays inside the browser on that device. The website never receives it.</div>
+        <div><b>3 &middot; Print</b>The browser prints the form, or saves a PDF, on that device.</div>
+        <div><b>4 &middot; Hand in</b>The signed paper comes to Satsang as today. The only copy is the one in the sangat&rsquo;s hand.</div>
+      </div>
+      <p style="margin-top:12px">This is the same privacy position as the current PDF: the Centre receives a piece of paper, and nothing more. The difference is only that the paper arrives complete, legible and already added up.</p>
+    </div>
+
+    <div class="card">
+      <h2>Security and privacy &mdash; the plain facts</h2>
+      <table>
+        <tr><th>Concern</th><th>Position</th></tr>
+        <tr><td>Is personal information collected?</td><td class="tick">No. The page has no database, no server-side code and no account system. There is nothing on our side that could store, see or leak a name or phone number.</td></tr>
+        <tr><td>Is anything sent over the internet when someone types?</td><td class="tick">No. Once the page has loaded, it works with the internet switched off. Nothing is transmitted while filling in or printing.</td></tr>
+        <tr><td>Could the data be hacked from the website?</td><td class="tick">There is no data on the website to hack. The page is a single file of text; the only thing an attacker could obtain from the site is the blank form itself.</td></tr>
+        <tr><td>What about a lost or shared phone?</td><td class="tick">A draft is kept on the device only so a person can finish later, and a &ldquo;Start over&rdquo; button wipes it. It is no different from a PDF saved to that phone &mdash; and unlike a PDF, it is cleared with one tap.</td></tr>
+        <tr><td>Does it use cookies, tracking or analytics?</td><td class="tick">None. No third-party scripts, no advertising, no visitor tracking.</td></tr>
+        <tr><td>Does the Centre need to manage passwords or accounts?</td><td class="tick">No. There is nothing to log in to, so nothing to reset, breach or support.</td></tr>
+        <tr><td>Privacy law (PIPEDA)</td><td class="tick">Because no personal information is collected or stored by the organisation through the page, the page itself creates no new obligations. The same privacy and consent wording as the paper form is printed on every sheet.</td></tr>
+        <tr><td>Can this be independently checked?</td><td class="tick">Yes. The entire page is one readable file; any technical volunteer can confirm in a few minutes that it contains no network calls. We welcome that review.</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>Online form vs. the PDF &mdash; side by side</h2>
+      <table>
+        <tr><th></th><th>PDF on website (today)</th><th>Online form (proposed)</th></tr>
+        <tr><td>Where the data lives</td><td>Sangat&rsquo;s device, then paper</td><td>Sangat&rsquo;s device, then paper &mdash; <b>identical</b></td></tr>
+        <tr><td>Stored on our website or a server</td><td class="cross">No</td><td class="cross">No</td></tr>
+        <tr><td>Works on a phone</td><td>Awkward &mdash; needs printing from a phone</td><td class="tick">Designed for phones first; also fine on a computer</td></tr>
+        <tr><td>Missing or unreadable answers</td><td>Common; found at the desk</td><td class="tick">Checked while typing; the form will not print until complete</td></tr>
+        <tr><td>Arithmetic (tickets, tea, lunch, totals)</td><td>By hand; errors at the desk</td><td class="tick">Calculated automatically</td></tr>
+        <tr><td>Rules (one guardian per four children, bus not for under-5s, parking eligibility)</td><td>Explained in text; often missed</td><td class="tick">Applied as questions are answered; ineligible options are shown as unavailable and say why</td></tr>
+        <tr><td>Only the relevant sections</td><td>All sections always shown</td><td class="tick">Shows only what applies &mdash; e.g. bus tickets only if taking the bus</td></tr>
+        <tr><td>Special Needs supplement</td><td>Separate PDF, often forgotten</td><td class="tick">Prompted automatically when needed; one page per person, printed together</td></tr>
+        <tr><td>Changing dates, prices, bus times each year</td><td>Re-lay out and re-publish the PDF</td><td class="tick">Edit a short list of values; the page rebuilds itself</td></tr>
+        <tr><td>Cost to run</td><td>None</td><td>None &mdash; a single static file on the existing site</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>What leadership gains at Satsang</h2>
+      <h3>A fast lane at registration</h3>
+      <p>Because a form from the online page cannot be printed until it is complete and the totals are already calculated, it needs no checking. Sangat arriving with one can go straight to the Finance team or the FA/SNP desk to pay and collect wristbands. Even if only 10&ndash;20% use it in the first year, that is 10&ndash;20% fewer forms to check &mdash; and others, seeing the shorter queue, will choose it next year.</p>
+      <h3>Fewer errors to chase afterwards</h3>
+      <p>Illegible phone numbers, missing postal codes, bus tickets for people not listed, children without a guardian, parking requests from families who are not eligible &mdash; each of these is caught before printing, not after.</p>
+      <h3>No new burden on sevadars</h3>
+      <p>Nothing changes at the desk except that some forms arrive ready. There is no system to log in to, no data to look after, no passwords to reset, and no training beyond &ldquo;this form is already checked&rdquo;.</p>
+    </div>
+
+    <div class="card">
+      <h2>What it is not</h2>
+      <div class="warn">It is <b>not</b> online registration. Nobody is registered by using the page &mdash; registration still happens when the signed paper is handed in and payment is made, exactly as today. The page is simply a better way to fill in the form.</div>
+      <ul>
+        <li>It does not replace the PDF or the paper form; both remain available.</li>
+        <li>It does not send anything to the Centre, to the website, or to anyone.</li>
+        <li>It does not take payment and holds no financial details.</li>
+        <li>It does not require the sangat to create an account or give an email address.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Current status</h2>
+      <p>A working preview exists and has been tested on phones and computers. Sections 1&ndash;10, the Special Needs supplement, Shuttle Buses, Charter Buses, Uber/Taxi and Request to Park are complete; Hotel Shuttle Buses is the one remaining option. Dates and prices are placeholders until the 2027 details are confirmed.</p>
+      <a class="btn" href="https://chiranjivauluck-prog.github.io/tsc-registration/">See the working preview</a>
+      <p class="small" style="text-align:center">Preview only &mdash; please do not circulate the link beyond leadership until approved. Enter any test details you like; nothing is saved.</p>
+    </div>
+
+    <div class="card">
+      <h2>Proposed decision</h2>
+      <ol style="margin:0; padding-left:22px">
+        <li>Approve adding the online form to torontoprogram.org next to the existing PDF, once the 2027 dates and prices are set.</li>
+        <li>Approve a fast lane at registration for forms completed online.</li>
+        <li>Nominate one technical volunteer to review the page file and confirm the &ldquo;nothing is sent or stored&rdquo; statement before launch.</li>
+      </ol>
+    </div>
+
+    <div class="foot">Prepared for leadership review &middot; The form itself is a single web page with no server component.</div>
+  </main>
+</div>
+</body>
+</html>
