@@ -786,7 +786,7 @@ const R = {
       <p class="hint">Choose the hotel you are staying at. The shuttle leaves the hotel at the time shown and brings you back after Satsang.</p>
       <div class="note">${esc(H.note)}</div>
       <div class="f ${bad("hotelkey") ? "bad" : ""}" data-f="hotelkey"><div class="lbl">Hotel <span class="req" style="color:var(--err)">*</span></div><div class="opts">
-        ${H.hotels.map(x => `<button type="button" class="opt ${S.hotel.key === x.key ? "on" : ""}" data-hotel="${x.key}"><span class="radio"></span><span style="flex:1"><span class="t"><span class="price">$${x.price} / ticket</span>${esc(x.name)}</span>${x.time ? `<div class="d">Departs ${esc(x.time)} AM both days</div>` : `<div class="d">Departure time will be confirmed by your Centre</div>`}</span></button>`).join("")}
+        ${H.hotels.map(x => `<button type="button" class="opt ${S.hotel.key === x.key ? "on" : ""}" data-hotel="${x.key}"><span class="radio"></span><span style="flex:1"><span class="t">${esc(x.name)}</span>${x.time ? `<div class="d">Departs ${esc(x.time)} AM both days · $${x.price} per ticket</div>` : `<div class="d">Departure time confirmed by your Centre · $${x.price} per ticket</div>`}</span></button>`).join("")}
       </div><div class="msg">${bad("hotelkey") ? esc(errs.hotelkey) : ""}</div></div>
       ${h && h.key === "other" ? field("hotelother", "Name of hotel", errs, textInput("hotel.otherName", "hotelother", 'autocapitalize="words"'), "") : ""}
     </div>`;
