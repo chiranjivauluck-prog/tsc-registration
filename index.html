@@ -218,7 +218,7 @@
 /* =====================================================================
    EVENT DATA  (copied from v03-data.js — keep in sync when it changes)
    ===================================================================== */
-const BUILD = { number: "0.9", date: "2026-10-12", preview: true };
+const BUILD = { number: "1.0", date: "2026-10-12", preview: true };
 const DATA = {
   version: "v03_2027 (web)",
   event: {
@@ -254,7 +254,8 @@ const DATA = {
     options: [
       { key: "shuttle", label: "Study Centre Shuttle Buses", desc: "Bus from a fairground, park-and-ride or pick-up point. You will choose the location and times next.",
         ineligible: "Not available for this form: children age 5 or under must come by car. Please choose Request to Park." },
-      { key: "hotel",   label: "Hotel Shuttle Buses", desc: "Only for Sangat staying in the designated hotels.", soon: true },
+      { key: "hotel",   label: "Hotel Shuttle Buses", desc: "Only for Sangat staying in one of the designated hotels. You will choose the hotel next.",
+        ineligible: "Not available for this form: children age 5 or under must come by car. Please choose Request to Park." },
       { key: "charter", label: "Charter Buses", desc: "A bus arranged by a local Satsang Centre or privately by Sangat (15 passenger minimum)." },
       { key: "taxi",    label: "Uber / Taxi / Drop-off", desc: "Someone drops you off and picks you up at the Study Centre gate." },
       { key: "park",    label: "Request to Park at the Study Centre", desc: "Car parking is available only for Special Needs and families with children age 5 or under.",
@@ -319,6 +320,17 @@ const DATA = {
     equipment: ["Regular wheelchair", "Motorized wheelchair", "Cane", "Walker", "Crutches", "Oxygen machine", "Service animal", "None", "Other / Medical Device"],
     version: "v01_2027 (web)"
   },
+  hotelShuttles: {
+    note: "Hotel shuttle buses are only for Sangat staying in these hotels. Tickets are roundtrip and non-refundable.",
+    hotels: [
+      { key: "bestwestern", name: "Orangeville: Best Western",                          time: "6:30", price: 10 },
+      { key: "hampton",     name: "Orangeville / Mono: Hampton Inn & Suites by Hilton", time: "6:30", price: 10 },
+      { key: "courtyard",   name: "Brampton: Courtyard by Marriott",                    time: "5:30", price: 10 },
+      { key: "hyatt",       name: "Brampton: Hyatt Place",                              time: "5:30", price: 10 },
+      { key: "quality",     name: "Brampton: Quality Inn & Suites",                     time: "5:30", price: 10 },
+      { key: "other",       name: "Other hotel designated for your Centre",             time: null,   price: 10 }
+    ]
+  },
   teaLunch: { teaPrice: 1.00, lunchPrice: 6.00, note: "Tea and lunch tickets are non-refundable.",
     teaHint: "Morning tea and cookies, 6:00–8:30 am", lunchHint: "Wrap, granola bar, cookies and a juice box, after Satsang" },
   chequePayableTo: "Science of the Soul Study Centre Canada",
@@ -344,6 +356,7 @@ const blank = () => ({
   needs: { translation: null, en: 0, fr: 0, hearing: null, hearingN: 0, special: null, specialN: 0 },
   transport: { mode: null, parkReason: null, parkSpots: 1, charterBy: null, charterName: "", charterFrom: "" },
   bus: { option: null, location: null, days: [{ time: null, tickets: null, cars: null }, { time: null, tickets: null, cars: null }] },
+  hotel: { key: null, otherName: "", days: [{ tickets: null }, { tickets: null }] },
   food: { days: [{ tea: 0, lunch: 0 }, { tea: 0, lunch: 0 }] },
   pay: { method: null },
   snp: [],
@@ -353,7 +366,7 @@ let S = blank();
 let restored = false;
 try {
   const saved = JSON.parse(localStorage.getItem(KEY) || "null");
-  if (saved && saved.contact) { S = Object.assign(blank(), saved); S.touched = S.touched || {}; S.transport = Object.assign(blank().transport, S.transport || {}); S.bus = S.bus || blank().bus; S.food = S.food || blank().food; S.pay = S.pay || blank().pay; S.snp = (S.snp || []).map(p => Object.assign(blankSnp(), p)); restored = true; }
+  if (saved && saved.contact) { S = Object.assign(blank(), saved); S.touched = S.touched || {}; S.transport = Object.assign(blank().transport, S.transport || {}); S.bus = S.bus || blank().bus; S.food = S.food || blank().food; S.hotel = Object.assign(blank().hotel, S.hotel || {}); S.pay = S.pay || blank().pay; S.snp = (S.snp || []).map(p => Object.assign(blankSnp(), p)); restored = true; }
 } catch (e) {}
 
 let saveTimer;
@@ -388,7 +401,10 @@ const busDayTotal = i => { const c = busChoice(); return c && S.days[i].attendin
 const busGrand = () => busDayTotal(0) + busDayTotal(1);
 const foodDayTotal = i => S.days[i].attending ? S.food.days[i].tea * DATA.teaLunch.teaPrice + S.food.days[i].lunch * DATA.teaLunch.lunchPrice : 0;
 const foodGrand = () => foodDayTotal(0) + foodDayTotal(1);
-const busA = () => S.transport.mode === "shuttle" ? busGrand() : 0;
+const hotelChoice = () => DATA.hotelShuttles.hotels.find(h => h.key === S.hotel.key) || null;
+const hotelDayTotal = i => { const h = hotelChoice(); return h && S.days[i].attending ? (S.hotel.days[i].tickets || 0) * h.price : 0; };
+const hotelGrand = () => hotelDayTotal(0) + hotelDayTotal(1);
+const busA = () => S.transport.mode === "shuttle" ? busGrand() : S.transport.mode === "hotel" ? hotelGrand() : 0;
 const grandTotal = () => busA() + foodGrand();
 const money = v => "$" + Number(v).toFixed(2);
 const P_ICON = `<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#fff" stroke="#0a7d45" stroke-width="4.5"/><text x="20.5" y="29.5" text-anchor="middle" font-family="Arial" font-weight="bold" font-size="26" fill="#111">P</text></svg>`;
@@ -402,7 +418,9 @@ function normalize() {
     if (t.parkReason === "child" && !el.child) t.parkReason = null;
     if (!t.parkReason && el.special !== el.child) t.parkReason = el.special ? "special" : "child";
   }
-  if (t.mode === "shuttle" && !busElig()) t.mode = null;
+  if ((t.mode === "shuttle" || t.mode === "hotel") && !busElig()) t.mode = null;
+  if (t.mode === "hotel") { const h = hotelChoice(); S.days.forEach((d, i) => { const hd = S.hotel.days[i]; if (!d.attending) hd.tickets = null; else if (h && hd.tickets === null) hd.tickets = dayTotal(d); }); }
+  if (S.hotel.key !== "other") S.hotel.otherName = "";
   const b = S.bus, o = busOpt();
   if (!o || !o.locations) b.location = null;
   else if (!o.locations.some(l => l.key === b.location)) b.location = null;
@@ -499,6 +517,18 @@ const V = {
     if (grandTotal() > 0 && !S.pay.method) e.pay = "Please tell us how you will be paying.";
     return e;
   },
+  hotel() {
+    const e = {}, h = hotelChoice();
+    if (!h) e.hotelkey = "Please choose your hotel.";
+    else if (h.key === "other" && !S.hotel.otherName.trim()) e.hotelother = "Enter the name of the hotel.";
+    else S.days.forEach((d, i) => {
+      if (!d.attending) return;
+      const n = S.hotel.days[i].tickets;
+      if (!(n >= 1)) e["hk" + i] = "Enter at least one ticket for " + dayName(E.days[i]) + ".";
+      else if (n > dayTotal(d)) e["hk" + i] = `${n} tickets but only ${dayTotal(d)} member${dayTotal(d) === 1 ? "" : "s"} listed for ${dayName(E.days[i])} in Section 2. Tickets cannot exceed the members attending.`;
+    });
+    return e;
+  },
   transport() {
     const t = S.transport, e = {};
     if (!t.mode) e.mode = "Please choose how you will travel to the Study Centre.";
@@ -522,12 +552,13 @@ const steps = () => [
   { key: "needs",      name: "Seating needs",  validate: V.needs },
   { key: "transport",  name: "Transportation", validate: V.transport },
   ...(S.transport.mode === "shuttle" ? [{ key: "bus", name: "Bus tickets", validate: V.bus }] : []),
+  ...(S.transport.mode === "hotel" ? [{ key: "hotel", name: "Hotel shuttle", validate: V.hotel }] : []),
   ...(S.needs.special ? [{ key: "snp", name: "Special needs", validate: V.snp }] : []),
   { key: "food",       name: "Tea, lunch & payment", validate: V.food },
   { key: "review",     name: "Review & print", validate: () => ({}) }
 ];
 const stepIndex = key => steps().findIndex(s => s.key === key);
-const allErrors = () => Object.assign({}, V.contact(), V.attendance(), V.needs(), V.transport(), S.transport.mode === "shuttle" ? V.bus() : {}, V.snp(), V.food());
+const allErrors = () => Object.assign({}, V.contact(), V.attendance(), V.needs(), V.transport(), S.transport.mode === "shuttle" ? V.bus() : {}, S.transport.mode === "hotel" ? V.hotel() : {}, V.snp(), V.food());
 const touch = f => { S.touched[f] = true; };
 const touchAll = f => { Object.keys(f).forEach(k => S.touched[k] = true); };
 
@@ -623,7 +654,7 @@ const R = {
       <p class="hint">Select <b>only one</b> option per form.</p>
       <div class="note">${T.guidelines.map(g => `• ${esc(g)}`).join("<br>")}</div>
       <div class="f ${bad("mode") ? "bad" : ""}" data-f="mode"><div class="opts">
-        ${T.options.map(o => { const off = o.soon || (o.key === "park" && !el.special && !el.child) || (o.key === "shuttle" && !busElig());
+        ${T.options.map(o => { const off = o.soon || (o.key === "park" && !el.special && !el.child) || ((o.key === "shuttle" || o.key === "hotel") && !busElig());
           return `<button type="button" class="opt ${t.mode === o.key ? "on" : ""} ${off ? "soon" : ""}" data-mode="${o.key}" ${off ? "disabled" : ""}><span class="radio"></span><span><span class="t">${esc(o.label)}${o.soon ? '<span class="tag">Later phase</span>' : off ? '<span class="tag">Not available</span>' : ""}</span><div class="d">${esc(off && o.ineligible ? o.ineligible : o.desc)}</div></span></button>`; }).join("")}
       </div><div class="msg">${bad("mode") ? esc(errs.mode) : ""}</div></div>
       ${t.mode === "charter" ? `<div class="branch">
@@ -738,7 +769,7 @@ const R = {
       <h2><span class="num">10</span>Total payment</h2>
       <p class="hint">Payment is made at your local Satsang Centre when you hand in the printed form.</p>
       <div class="sum">
-        ${S.transport.mode === "shuttle" ? line(`<span><span class="ref">A</span>Bus tickets</span>`, money(busA())) : ""}
+        ${S.transport.mode === "shuttle" ? line(`<span><span class="ref">A</span>Bus tickets</span>`, money(busA())) : S.transport.mode === "hotel" ? line(`<span><span class="ref">A</span>Hotel shuttle tickets</span>`, money(busA())) : ""}
         ${line(`<span><span class="ref">B</span>Tea &amp; packed lunch</span>`, money(foodGrand()))}
         ${line("Total payment enclosed", money(total), "g")}
       </div>
@@ -748,10 +779,34 @@ const R = {
       : `<div class="note">Nothing to pay — you have not ordered bus tickets, tea or lunch.</div>`}
     </div>`;
   },
+  hotel(errs) {
+    const H = DATA.hotelShuttles, h = hotelChoice(), bad = k => S.touched[k] && errs[k];
+    let html = `<div class="card">
+      <h2><span class="num">8</span>Hotel Shuttle Buses</h2>
+      <p class="hint">Choose the hotel you are staying at. The shuttle leaves the hotel at the time shown and brings you back after Satsang.</p>
+      <div class="note">${esc(H.note)}</div>
+      <div class="f ${bad("hotelkey") ? "bad" : ""}" data-f="hotelkey"><div class="lbl">Hotel <span class="req" style="color:var(--err)">*</span></div><div class="opts">
+        ${H.hotels.map(x => `<button type="button" class="opt ${S.hotel.key === x.key ? "on" : ""}" data-hotel="${x.key}"><span class="radio"></span><span style="flex:1"><span class="t"><span class="price">$${x.price} / ticket</span>${esc(x.name)}</span>${x.time ? `<div class="d">Departs ${esc(x.time)} AM both days</div>` : `<div class="d">Departure time will be confirmed by your Centre</div>`}</span></button>`).join("")}
+      </div><div class="msg">${bad("hotelkey") ? esc(errs.hotelkey) : ""}</div></div>
+      ${h && h.key === "other" ? field("hotelother", "Name of hotel", errs, textInput("hotel.otherName", "hotelother", 'autocapitalize="words"'), "") : ""}
+    </div>`;
+    if (h && (h.key !== "other" || S.hotel.otherName.trim())) {
+      html += S.days.map((d, i) => { if (!d.attending) return ""; const hd = S.hotel.days[i]; return `<div class="card">
+        <h2 style="font-size:17px">${esc(dayName(E.days[i]))}${h.time ? ` <span class="hint" style="margin:0;font-size:14px">· departs ${esc(h.time)} AM</span>` : ""}</h2>
+        <div class="f ${bad("hk" + i) ? "bad" : ""}" data-f="hk${i}">
+          ${srow("Shuttle tickets", `You listed ${dayTotal(d)} member${dayTotal(d) === 1 ? "" : "s"} for this day · $${h.price} each`, stepper(`hotel.days.${i}.tickets`, "hk" + i, hd.tickets || 0, 0, dayTotal(d)))}
+          <div class="msg">${bad("hk" + i) ? esc(errs["hk" + i]) : ""}</div>
+          ${!bad("hk" + i) && hd.tickets >= 1 && hd.tickets < dayTotal(d) ? `<div class="msg warn">⚠ ${hd.tickets} ticket${hd.tickets === 1 ? "" : "s"} but ${dayTotal(d)} member${dayTotal(d) === 1 ? "" : "s"} listed for this day. Everyone travelling by shuttle needs a ticket.</div>` : ""}</div>
+        <div class="subtotal"><span>Shuttle total for this day</span><span>${money(hotelDayTotal(i))}</span></div>
+      </div>`; }).join("");
+      html += `<div class="total"><span>Hotel shuttle total<small>${esc(h.key === "other" ? S.hotel.otherName : h.name)} · roundtrip, non-refundable</small></span><span>${money(hotelGrand())}</span></div>`;
+    }
+    return html;
+  },
   review() {
     const errs = allErrors(), c = S.contact, n = S.needs, t = S.transport;
     const issues = Object.entries(errs);
-    const stepOf = k => /^(title|first|last|phone|city|province|postal)$/.test(k) ? 0 : /^(att|cnt)/.test(k) ? 1 : /^(translation|hearing|special)$/.test(k) ? 2 : /^(bus|bt|bk)/.test(k) ? stepIndex("bus") : /^snp/.test(k) ? stepIndex("snp") : k === "pay" ? stepIndex("food") : 3;
+    const stepOf = k => /^(title|first|last|phone|city|province|postal)$/.test(k) ? 0 : /^(att|cnt)/.test(k) ? 1 : /^(translation|hearing|special)$/.test(k) ? 2 : /^(bus|bt|bk)/.test(k) ? stepIndex("bus") : /^(hotel|hk)/.test(k) ? stepIndex("hotel") : /^snp/.test(k) ? stepIndex("snp") : k === "pay" ? stepIndex("food") : 3;
     const row = (k, v, empty) => `<div class="rv"><span class="k">${k}</span><span class="v ${empty ? "empty" : ""}">${v}</span></div>`;
     const yn = v => v === null ? "—" : v ? "Yes" : "No";
     const opt = T => (T.options.find(o => o.key === t.mode) || {}).label || "—";
@@ -783,12 +838,17 @@ const R = {
         ${S.days.map((d, i) => !d.attending ? "" : row(esc(dayName(E.days[i])), S.bus.days[i].time ? `${S.bus.days[i].time} AM · ${S.bus.days[i].tickets} ticket${S.bus.days[i].tickets === 1 ? "" : "s"}${bc && bc.parking ? ` · ${S.bus.days[i].cars} car${S.bus.days[i].cars === 1 ? "" : "s"}` : ""}` : "—", !S.bus.days[i].time)).join("")}
         ${row("Bus total", money(busGrand()))}
       </div>`; })() : ""}
+      ${t.mode === "hotel" ? (() => { const h = hotelChoice(); const nm = h ? (h.key === "other" ? S.hotel.otherName : h.name) : ""; return `<div class="card"><h2>8 &nbsp;Hotel shuttle <button class="edit" data-goto="${stepIndex("hotel")}">Edit</button></h2>
+        ${row("Hotel", nm ? esc(nm) + (h.time ? ` <span style="font-weight:400;color:var(--soft)">· departs ${esc(h.time)} AM</span>` : "") : "—", !nm)}
+        ${S.days.map((d, i) => !d.attending ? "" : row(esc(dayName(E.days[i])), S.hotel.days[i].tickets ? `${S.hotel.days[i].tickets} ticket${S.hotel.days[i].tickets === 1 ? "" : "s"}` : "—", !S.hotel.days[i].tickets)).join("")}
+        ${row("Shuttle total", money(hotelGrand()))}
+      </div>`; })() : ""}
       ${S.needs.special ? `<div class="card"><h2>SN &nbsp;Special needs <button class="edit" data-goto="${stepIndex("snp")}">Edit</button></h2>
         ${S.snp.map((p, i) => { const nd = (DATA.snp.needs.find(o => o.key === p.need) || {}).label || "—"; return row(`Person ${i + 1}`, (p.first || p.last) ? `${esc(p.first)} ${esc(p.last)} <span style="font-weight:400;color:var(--soft)">· ${esc(p.sex || "—")} · ${esc(p.age || "—")} · companion ${p.companion === null ? "—" : p.companion ? "yes" : "no"}</span>` : "—", !p.first); }).join("")}
       </div>` : ""}
       <div class="card"><h2>9–10 &nbsp;Tea, lunch &amp; payment <button class="edit" data-goto="${stepIndex("food")}">Edit</button></h2>
         ${S.days.map((d, i) => !d.attending ? "" : row(esc(dayName(E.days[i])), S.food.days[i].tea + S.food.days[i].lunch ? `${S.food.days[i].tea} tea · ${S.food.days[i].lunch} lunch` : "None")).join("")}
-        ${row("Total payment", `<b>${money(grandTotal())}</b>` + (S.transport.mode === "shuttle" ? ` <span style="font-weight:400;color:var(--soft)">(bus ${money(busA())} + tea &amp; lunch ${money(foodGrand())})</span>` : ""))}
+        ${row("Total payment", `<b>${money(grandTotal())}</b>` + (busA() > 0 ? ` <span style="font-weight:400;color:var(--soft)">(${S.transport.mode === "hotel" ? "shuttle" : "bus"} ${money(busA())} + tea &amp; lunch ${money(foodGrand())})</span>` : ""))}
         ${grandTotal() > 0 ? row("Paying by", S.pay.method ? (S.pay.method === "cash" ? "Cash" : "Cheque") : "—", !S.pay.method) : ""}
       </div>`;
   }
@@ -816,24 +876,29 @@ function renderSheet() {
       ${pr("4. Hearing assistance", n.hearing ? `Yes — ${n.hearingN} member${n.hearingN === 1 ? "" : "s"}` : yn(n.hearing))}
       ${pr("5. Special needs", n.special ? `Yes — ${n.specialN} member${n.specialN === 1 ? "" : "s"}: ${S.snp.map(p => esc(p.first + " " + p.last).trim()).join(", ")} (Special Needs Application attached, ${S.snp.length} page${S.snp.length === 1 ? "" : "s"})` : yn(n.special))}</div>
     <div class="ps"><h3>6. Mode of transportation to the Study Centre</h3>
-      <div class="pbox"><b>${esc(opt)}</b>${t.mode === "park" ? `<br>Reason for pass: <b>${esc(reason)}</b> &nbsp;·&nbsp; Number of parking spots: <b>${t.parkSpots}</b><br><span style="font-size:8.5pt;color:var(--soft)">Parking space is limited and not all requests may receive a car pass.</span>` : ""}${t.mode === "shuttle" && busChoice() ? ` — <b>${esc(busChoice().name)}</b> (see Section 7)` : ""}${t.mode === "charter" ? `<br>Arranged by: <b>${esc((DATA.transport.charter.arrangedBy.find(a => a.key === t.charterBy) || {}).label || "")}</b> &nbsp;·&nbsp; ${t.charterBy === "centre" ? "Satsang Centre" : "Bus organizer"}: <b>${esc(t.charterName)}</b> &nbsp;·&nbsp; Departure location: <b>${esc(t.charterFrom)}</b><br><span style="font-size:8.5pt;color:var(--soft)">This form is submitted by the bus organizer together with the other passengers’ forms.</span>` : ""}${t.mode === "taxi" ? `<br>Pick-up / drop-off address: <b>${DATA.transport.dropOff.address.map(esc).join(" ")}</b><br><span style="font-size:8.5pt;color:var(--soft)">${esc(DATA.transport.dropOff.warning)}</span>` : ""}</div></div>
+      <div class="pbox"><b>${esc(opt)}</b>${t.mode === "park" ? `<br>Reason for pass: <b>${esc(reason)}</b> &nbsp;·&nbsp; Number of parking spots: <b>${t.parkSpots}</b><br><span style="font-size:8.5pt;color:var(--soft)">Parking space is limited and not all requests may receive a car pass.</span>` : ""}${t.mode === "shuttle" && busChoice() ? ` — <b>${esc(busChoice().name)}</b> (see Section 7)` : ""}${t.mode === "hotel" && hotelChoice() ? ` — <b>${esc(hotelChoice().key === "other" ? S.hotel.otherName : hotelChoice().name)}</b> (see Section 8)` : ""}${t.mode === "charter" ? `<br>Arranged by: <b>${esc((DATA.transport.charter.arrangedBy.find(a => a.key === t.charterBy) || {}).label || "")}</b> &nbsp;·&nbsp; ${t.charterBy === "centre" ? "Satsang Centre" : "Bus organizer"}: <b>${esc(t.charterName)}</b> &nbsp;·&nbsp; Departure location: <b>${esc(t.charterFrom)}</b><br><span style="font-size:8.5pt;color:var(--soft)">This form is submitted by the bus organizer together with the other passengers’ forms.</span>` : ""}${t.mode === "taxi" ? `<br>Pick-up / drop-off address: <b>${DATA.transport.dropOff.address.map(esc).join(" ")}</b><br><span style="font-size:8.5pt;color:var(--soft)">${esc(DATA.transport.dropOff.warning)}</span>` : ""}</div></div>
     ${t.mode === "shuttle" && busChoice() ? (() => { const bc = busChoice(); return `<div class="ps"><h3>7. Study Centre Shuttle Buses — bus ticket order</h3>
       <table class="pt"><tr><th>Day</th><th>Departure location</th><th>Departure time</th><th># of tickets</th><th>Price</th><th>Bus total</th>${bc.parking ? "<th># of cars parking</th>" : ""}</tr>
       ${S.days.map((d, i) => `<tr><td>${esc(E.days[i].short)}</td>${d.attending ? `<td style="text-align:left">${esc(bc.name)}</td><td>${esc(S.bus.days[i].time)} AM</td><td>${S.bus.days[i].tickets}</td><td>${money(bc.price)}</td><td><b>${money(busDayTotal(i))}</b></td>${bc.parking ? `<td>${S.bus.days[i].cars}</td>` : ""}` : `<td colspan="${bc.parking ? 6 : 5}" style="text-align:left;color:var(--soft)">Not attending</td>`}</tr>`).join("")}
       <tr><td colspan="${bc.parking ? 5 : 4}" style="text-align:right">Bus Total (A)</td><td><b>${money(busGrand())}</b></td>${bc.parking ? "<td></td>" : ""}</tr></table>
       <div style="font-size:7.5pt;color:var(--soft);line-height:1.2">${DATA.busNotes.map(esc).join(" ")}</div></div>`; })() : ""}
+    ${t.mode === "hotel" && hotelChoice() ? (() => { const h = hotelChoice(), nm = h.key === "other" ? S.hotel.otherName : h.name; return `<div class="ps"><h3>8. Hotel Shuttle Buses — ticket order</h3>
+      <table class="pt"><tr><th>Day</th><th>Hotel</th><th>Departure time</th><th># of tickets</th><th>Price</th><th>Total</th></tr>
+      ${S.days.map((d, i) => `<tr><td>${esc(E.days[i].short)}</td>${d.attending ? `<td style="text-align:left">${esc(nm)}</td><td>${h.time ? esc(h.time) + " AM" : "To be confirmed"}</td><td>${S.hotel.days[i].tickets}</td><td>${money(h.price)}</td><td><b>${money(hotelDayTotal(i))}</b></td>` : `<td colspan="5" style="text-align:left;color:var(--soft)">Not attending</td>`}</tr>`).join("")}
+      <tr><td colspan="5" style="text-align:right">Hotel Shuttle Total (A)</td><td><b>${money(hotelGrand())}</b></td></tr></table>
+      <div style="font-size:7.5pt;color:var(--soft);line-height:1.2">${esc(DATA.hotelShuttles.note)}</div></div>`; })() : ""}
     <div class="ps"><h3>9–10. Tea &amp; packed lunch · Total payment</h3>
       <div style="display:flex; gap:12pt; align-items:flex-start">
       <table class="pt" style="flex:1"><tr><th>Day</th><th># of Tea (${money(DATA.teaLunch.teaPrice)})</th><th># of Lunch (${money(DATA.teaLunch.lunchPrice)})</th><th>Tea &amp; lunch total</th></tr>
         ${S.days.map((d, i) => `<tr><td>${esc(E.days[i].short)}</td>${d.attending ? `<td>${S.food.days[i].tea}</td><td>${S.food.days[i].lunch}</td><td><b>${money(foodDayTotal(i))}</b></td>` : `<td colspan="3" style="text-align:left;color:var(--soft)">Not attending</td>`}</tr>`).join("")}
         <tr><td colspan="3" style="text-align:right">Tea &amp; Lunch Total (B)</td><td><b>${money(foodGrand())}</b></td></tr></table>
       <table class="pt" style="flex:1"><tr><th colspan="2" style="text-align:left">Total payment enclosed</th></tr>
-        ${t.mode === "shuttle" ? `<tr><td>Bus Total (A)</td><td>${money(busA())}</td></tr>` : ""}
+        ${t.mode === "shuttle" ? `<tr><td>Bus Total (A)</td><td>${money(busA())}</td></tr>` : t.mode === "hotel" ? `<tr><td>Hotel Shuttle Total (A)</td><td>${money(busA())}</td></tr>` : ""}
         <tr><td>Tea &amp; Lunch Total (B)</td><td>${money(foodGrand())}</td></tr>
         <tr><td><b>Total Payment</b></td><td><b>${money(grandTotal())}</b></td></tr>
         <tr><td>Paying by</td><td style="text-align:left">${grandTotal() > 0 ? `${S.pay.method === "cash" ? "☑" : "☐"} Cash &nbsp; ${S.pay.method === "cheque" ? "☑" : "☐"} Cheque` : "—"}</td></tr></table>
       </div>
-      <div style="font-size:7.5pt;color:var(--soft);margin-top:2pt">${esc(DATA.teaLunch.note)} ${t.mode === "shuttle" || grandTotal() > 0 ? "Cheques payable to " + esc(DATA.chequePayableTo) + "." : ""}</div></div>
+      <div style="font-size:7.5pt;color:var(--soft);margin-top:2pt">${esc(DATA.teaLunch.note)} ${grandTotal() > 0 ? "Cheques payable to " + esc(DATA.chequePayableTo) + "." : ""}</div></div>
     <div class="legal"><div><b>Privacy</b>${esc(DATA.legal.privacy)}</div><div><b>Consent</b>${esc(DATA.legal.consent)}</div><div><b>Disclaimer</b>${esc(DATA.legal.disclaimer)}</div></div>
     <div class="sig"><div><div class="l">Signature</div><div class="b"></div></div><div><div class="l">Date (MM/DD)</div><div class="b"><span>, ${esc(E.year)}</span></div></div></div>
     <div class="admin"><div class="cap">For admin use only</div><div class="grid">
@@ -885,6 +950,7 @@ function focusKey() {
   if (a.dataset.step) return `[data-step="${a.dataset.step}"][data-d="${a.dataset.d}"]`;
   if (a.dataset.mode) return `[data-mode="${a.dataset.mode}"]`;
   if (a.dataset.busopt) return `[data-busopt="${a.dataset.busopt}"]`;
+  if (a.dataset.hotel) return `[data-hotel="${a.dataset.hotel}"]`;
   if (a.dataset.snpneed !== undefined) return `[data-snpneed="${a.dataset.snpneed}"][data-v="${a.dataset.v}"]`;
   if (a.dataset.snpeq !== undefined) return `[data-snpeq="${a.dataset.snpeq}"][data-v="${a.dataset.v}"]`;
   if (a.dataset.busloc) return `[data-busloc="${a.dataset.busloc}"]`;
@@ -927,6 +993,7 @@ document.addEventListener("click", e => {
   else if (b.dataset.snprm !== undefined) { S.snp.splice(+b.dataset.snprm, 1); S.needs.specialN = S.snp.length; touch("snpcount"); render(); }
   else if (b.dataset.snpneed !== undefined) { S.snp[+b.dataset.snpneed].need = b.dataset.v; touch(`snp${b.dataset.snpneed}.need`); render(); }
   else if (b.dataset.snpeq !== undefined) { const p = S.snp[+b.dataset.snpeq], v = b.dataset.v; if (v === "None") p.equipment = p.equipment.includes("None") ? [] : ["None"]; else { p.equipment = p.equipment.filter(x => x !== "None"); p.equipment = p.equipment.includes(v) ? p.equipment.filter(x => x !== v) : [...p.equipment, v]; } touch(`snp${b.dataset.snpeq}.equipment`); render(); }
+  else if (b.dataset.hotel) { S.hotel.key = b.dataset.hotel; touch("hotelkey"); render(); }
   else if (b.dataset.busopt) { S.bus.option = b.dataset.busopt; touch("busopt"); render(); }
   else if (b.dataset.busloc) { S.bus.location = b.dataset.busloc; touch("busloc"); render(); }
   else if (b.dataset.bustime !== undefined) { S.bus.days[+b.dataset.bustime].time = b.dataset.v; touch("bt" + b.dataset.bustime); render(); }
@@ -947,6 +1014,8 @@ document.addEventListener("input", e => {
 document.addEventListener("focusout", e => {
   const el = e.target; if (!el.dataset || !el.dataset.key || el.dataset.num) return;
   touch(el.dataset.key); paint(el.dataset.key); save();
+  // the hotel name decides whether the per-day cards show, so re-render once it is entered
+  if (el.dataset.key === "hotelother") render();
 });
 document.addEventListener("change", e => { const el = e.target; if (el.tagName === "SELECT" && el.dataset.path) { set(el.dataset.path, el.value); touch(el.dataset.key); paint(el.dataset.key); save(); } });
 window.addEventListener("beforeprint", renderSheet);
