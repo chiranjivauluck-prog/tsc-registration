@@ -6,36 +6,36 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Online registration form: how it works and why it is safe</title>
 <style>
-  :root { --ink: #16282b; --soft: #4c6064; --accent: #0b5563; --tint: #e7f0f1; --line: #b8c8cb; --hair: #dfe8e9; --ok: #0a6b3c; --okbg: #e9f5ee; --warn: #9a5b00; --warn-bg: #fff6e5; }
+  :root { --ink: #111; --soft: #444; --accent: #0a3d62; --tint: #cce6ff; --line: #9fb8cc; --hair: #d9e3ec; --ok: #0a3d62; --okbg: #cce6ff; --warn: #0a3d62; --warn-bg: #cce6ff; }
   * { box-sizing: border-box; }
-  body { margin: 0; font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif; color: var(--ink); background: #eef2f3; font-size: 16px; line-height: 1.5; }
+  body { margin: 0; font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif; color: var(--ink); background: #fffff2; font-size: 16px; line-height: 1.5; }
   .wrap { max-width: 720px; margin: 0 auto; padding: 0 0 40px; }
-  .top { background: #fff; padding: 18px 20px 14px; border-bottom: 3px solid var(--accent); }
-  .kicker { font-size: 11px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: var(--accent); }
+  .top { background: var(--accent); color: #fff; padding: 18px 20px 16px; }
+  .kicker { font-size: 11px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: #cce6ff; }
   h1 { margin: 2px 0 0; font-size: 23px; line-height: 1.2; }
-  .sub { color: var(--soft); font-size: 14px; margin-top: 4px; }
+  .sub { color: #e6f0fa; font-size: 14px; margin-top: 4px; }
   main { padding: 16px; }
-  .card { background: #fff; border-radius: 12px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,.08); margin-bottom: 14px; }
+  .card { background: #fff; border-radius: 6px; padding: 18px; border: 1px solid var(--hair); margin-bottom: 14px; }
   h2 { margin: 0 0 10px; font-size: 18px; }
   h3 { margin: 14px 0 4px; font-size: 15px; }
   p { margin: 0 0 10px; }
   p:last-child, ul:last-child { margin-bottom: 0; }
   ul { padding-left: 22px; margin: 0 0 10px; }
   li { margin-bottom: 6px; }
-  .ok { background: var(--okbg); border-left: 4px solid var(--ok); border-radius: 0 8px 8px 0; padding: 10px 12px; font-size: 15px; margin: 0 0 12px; }
-  .warn { background: var(--warn-bg); border-left: 4px solid var(--warn); border-radius: 0 8px 8px 0; padding: 10px 12px; font-size: 15px; margin: 0 0 12px; }
+  .ok { background: var(--okbg); border-left: 4px solid var(--ok); border-radius: 4px; padding: 10px 12px; font-size: 15px; margin: 0 0 12px; color: var(--accent); font-weight: 600; }
+  .warn { background: var(--warn-bg); border-left: 4px solid var(--warn); border-radius: 4px; padding: 10px 12px; font-size: 15px; margin: 0 0 12px; color: var(--accent); font-weight: 600; }
   table { width: 100%; border-collapse: collapse; font-size: 15px; margin: 6px 0 4px; }
   th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--hair); vertical-align: top; }
   th { background: var(--tint); font-size: 13px; letter-spacing: .3px; text-transform: uppercase; color: var(--soft); }
   td:first-child { font-weight: 600; width: 34%; }
-  .tick::before { content: "\2713  "; color: var(--ok); font-weight: 700; }
+  .tick::before { content: "\2713  "; color: #1a7f37; font-weight: 700; }
   .cross::before { content: "\2014  "; color: var(--soft); }
   .flow { display: grid; grid-template-columns: 1fr; gap: 8px; }
-  .flow div { background: var(--tint); border-radius: 8px; padding: 10px 12px; font-size: 15px; }
+  .flow div { background: var(--tint); border-radius: 4px; padding: 10px 12px; font-size: 15px; }
   .flow div b { display: block; color: var(--accent); font-size: 13px; letter-spacing: .5px; text-transform: uppercase; margin-bottom: 2px; }
   @media (min-width: 560px) { .flow { grid-template-columns: repeat(4, 1fr); } }
-  .btn { display: block; text-align: center; background: var(--accent); color: #fff; text-decoration: none; font-weight: 700; font-size: 17px; padding: 15px; border-radius: 10px; margin: 6px 0 4px; }
-  .btn:hover { background: #083f4a; }
+  .btn { display: block; text-align: center; background: var(--accent); color: #fff; text-decoration: none; font-weight: 700; font-size: 17px; padding: 15px; border-radius: 6px; margin: 6px 0 4px; }
+  .btn:hover { background: #072d49; }
   .small { font-size: 13px; color: var(--soft); }
   .printonly { display: none; }
   .foot { text-align: center; color: var(--soft); font-size: 12px; margin-top: 10px; }
