@@ -218,7 +218,7 @@
 /* =====================================================================
    EVENT DATA  (copied from v03-data.js — keep in sync when it changes)
    ===================================================================== */
-const BUILD = { number: "1.2", date: "2026-10-12", preview: true };
+const BUILD = { number: "1.3", date: "2026-10-12", preview: true };
 const DATA = {
   version: "v03_2027 (web)",
   event: {
@@ -354,7 +354,7 @@ const blank = () => ({
   contact: { title: null, first: "", last: "", phone: "", city: "", province: "Ontario", postal: "" },
   days: [blankDay(), blankDay()],
   needs: { translation: null, en: 0, fr: 0, hearing: null, hearingN: 0, special: null, specialN: 0 },
-  transport: { mode: null, parkReason: null, parkSpots: 1, charterBy: null, charterName: "", charterFrom: "" },
+  transport: { mode: null, parkReason: null, parkSpots: 1, parkAck: false, charterBy: null, charterName: "", charterFrom: "" },
   bus: { option: null, location: null, days: [{ time: null, tickets: null, cars: null }, { time: null, tickets: null, cars: null }] },
   hotel: { key: null, otherName: "", days: [{ tickets: null }, { tickets: null }] },
   food: { days: [{ tea: 0, lunch: 0 }, { tea: 0, lunch: 0 }] },
@@ -390,6 +390,8 @@ const fmtPhone = s => { const d = digits(s).slice(0, 10); if (d.length < 4) retu
 const fmtPostal = s => { const p = String(s).toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6); return p.length > 3 ? p.slice(0,3) + " " + p.slice(3) : p; };
 const kids = d => d.fa5 + d.fa9 + d.fa15;
 const parkElig = () => ({ special: S.needs.special === true, child: S.days.some(d => d.attending && d.fa5 > 0) });
+const parkCap = () => { const el = parkElig(); return Math.max(1, (el.special ? S.needs.specialN : 0) + (el.child ? 1 : 0)); };
+const parkBreakdown = () => { const el = parkElig(), parts = []; if (el.special) parts.push(`${S.needs.specialN} Special Needs`); if (el.child) parts.push("1 child age 5 or under"); return parts.join(" + "); };
 const busElig = () => !S.days.some(d => d.attending && d.fa5 > 0);
 const busOpt = () => DATA.busOptions.find(o => o.key === S.bus.option) || null;
 const busLoc = () => { const o = busOpt(); return o && o.locations ? o.locations.find(l => l.key === S.bus.location) || null : null; };
@@ -417,7 +419,9 @@ function normalize() {
     if (t.parkReason === "special" && !el.special) t.parkReason = null;
     if (t.parkReason === "child" && !el.child) t.parkReason = null;
     if (!t.parkReason && el.special !== el.child) t.parkReason = el.special ? "special" : "child";
+    if (t.parkSpots > parkCap()) t.parkSpots = parkCap();
   }
+  if (t.mode !== "park") t.parkAck = false;
   if ((t.mode === "shuttle" || t.mode === "hotel") && !busElig()) t.mode = null;
   if (t.mode === "hotel") { const h = hotelChoice(); S.days.forEach((d, i) => { const hd = S.hotel.days[i]; if (!d.attending) hd.tickets = null; else if (h && hd.tickets === null) hd.tickets = dayTotal(d); }); }
   if (S.hotel.key !== "other") S.hotel.otherName = "";
@@ -541,6 +545,8 @@ const V = {
     if (t.mode === "park") {
       if (!t.parkReason) e.parkReason = "Please tell us why you require a parking pass.";
       if (!(t.parkSpots >= 1)) e.parkSpots = "Enter the number of parking spots (at least 1).";
+      else if (t.parkSpots > parkCap()) e.parkSpots = `Up to ${parkCap()} parking spot${parkCap() === 1 ? "" : "s"} can be requested for this family (${parkBreakdown()}).`;
+      if (!t.parkAck) e.parkAck = "Please confirm you understand that a parking pass is not guaranteed.";
       if (t.parkReason === "child" && !S.days.some(d => d.attending && d.fa5 > 0)) e.parkReason = "You chose “Child age 5 or under” but no child aged 5 or under is listed in Section 2.";
       if (t.parkReason === "special" && !S.needs.special) e.parkReason = "You chose “Special Needs” but answered No to special needs in Section 5.";
     }
@@ -679,8 +685,12 @@ const R = {
           ${reasons.length === 1 ? `<div class="msg" style="color:var(--soft)">Based on your answers in Section ${reasons[0].key === "special" ? "5" : "2"}.</div>` : ""}
           <div class="msg">${bad("parkReason") ? esc(errs.parkReason) : ""}</div></div>
         <div class="f ${bad("parkSpots") ? "bad" : ""}" data-f="parkSpots"><label>Number of parking spots <span class="req">*</span></label>
-          ${stepper("transport.parkSpots", "parkSpots", t.parkSpots, 1, 5)}
-          <div class="msg">${bad("parkSpots") ? esc(errs.parkSpots) : ""}</div></div>
+          ${stepper("transport.parkSpots", "parkSpots", t.parkSpots, 1, parkCap())}
+          <div class="msg">${bad("parkSpots") ? esc(errs.parkSpots) : `Up to ${parkCap()} for this family: ${esc(parkBreakdown())}.`}</div>
+          ${!bad("parkSpots") && t.parkSpots >= 2 ? `<div class="msg warn">⚠ Parking passes are only for the members who need them. Please put the other members on a bus or arrange a drop-off.</div>` : ""}</div>
+        <div class="f ${bad("parkAck") ? "bad" : ""}" data-f="parkAck">
+          <button type="button" class="chk ${t.parkAck ? "on" : ""}" data-parkack="1" style="width:100%; font-weight:500; font-size:14.5px; line-height:1.3"><span class="box"></span><span>I understand parking is limited and a pass is not guaranteed. If no pass is issued, we will use a bus or arrange a drop-off.</span></button>
+          <div class="msg">${bad("parkAck") ? esc(errs.parkAck) : ""}</div></div>
       </div>` : ""}
     </div>`;
   },
@@ -831,7 +841,7 @@ const R = {
       </div>
       <div class="card"><h2>6 &nbsp;Transportation <button class="edit" data-goto="3">Edit</button></h2>
         ${row("Option", esc(opt(DATA.transport)), !t.mode)}
-        ${t.mode === "park" ? row("Reason", esc(reason), !t.parkReason) + row("Parking spots", t.parkSpots) : ""}
+        ${t.mode === "park" ? row("Reason", esc(reason), !t.parkReason) + row("Parking spots", `${t.parkSpots} <span style="font-weight:400;color:var(--soft)">(${esc(parkBreakdown())})</span>`) + row("Pass not guaranteed", t.parkAck ? "Acknowledged" : "—", !t.parkAck) : ""}
         ${t.mode === "taxi" ? row("Drop-off address", DATA.transport.dropOff.address.map(esc).join("<br>")) : ""}
         ${t.mode === "charter" ? row("Arranged by", t.charterBy ? esc((DATA.transport.charter.arrangedBy.find(a => a.key === t.charterBy) || {}).label) : "—", !t.charterBy) + row(t.charterBy === "centre" ? "Satsang Centre" : "Bus organizer", esc(t.charterName) || "—", !t.charterName) + row("Departure location", esc(t.charterFrom) || "—", !t.charterFrom) : ""}
       </div>
@@ -878,7 +888,7 @@ function renderSheet() {
       ${pr("4. Hearing assistance", n.hearing ? `Yes — ${n.hearingN} member${n.hearingN === 1 ? "" : "s"}` : yn(n.hearing))}
       ${pr("5. Special needs", n.special ? `Yes — ${n.specialN} member${n.specialN === 1 ? "" : "s"}: ${S.snp.map(p => esc(p.first + " " + p.last).trim()).join(", ")} (Special Needs Application attached, ${S.snp.length} page${S.snp.length === 1 ? "" : "s"})` : yn(n.special))}</div>
     <div class="ps"><h3>6. Mode of transportation to the Study Centre</h3>
-      <div class="pbox"><b>${esc(opt)}</b>${t.mode === "park" ? `<br>Reason for pass: <b>${esc(reason)}</b> &nbsp;·&nbsp; Number of parking spots: <b>${t.parkSpots}</b><br><span style="font-size:8.5pt;color:var(--soft)">Parking space is limited and not all requests may receive a car pass.</span>` : ""}${t.mode === "shuttle" && busChoice() ? ` — <b>${esc(busChoice().name)}</b> (see Section 7)` : ""}${t.mode === "hotel" && hotelChoice() ? ` — <b>${esc(hotelChoice().key === "other" ? S.hotel.otherName : hotelChoice().name)}</b> (see Section 8)` : ""}${t.mode === "charter" ? `<br>Arranged by: <b>${esc((DATA.transport.charter.arrangedBy.find(a => a.key === t.charterBy) || {}).label || "")}</b> &nbsp;·&nbsp; ${t.charterBy === "centre" ? "Satsang Centre" : "Bus organizer"}: <b>${esc(t.charterName)}</b> &nbsp;·&nbsp; Departure location: <b>${esc(t.charterFrom)}</b><br><span style="font-size:8.5pt;color:var(--soft)">This form is submitted by the bus organizer together with the other passengers’ forms.</span>` : ""}${t.mode === "taxi" ? `<br>Pick-up / drop-off address: <b>${DATA.transport.dropOff.address.map(esc).join(" ")}</b><br><span style="font-size:8.5pt;color:var(--soft)">${esc(DATA.transport.dropOff.warning)}</span>` : ""}</div></div>
+      <div class="pbox"><b>${esc(opt)}</b>${t.mode === "park" ? `<br>Reason for pass: <b>${esc(reason)}</b> &nbsp;·&nbsp; Number of parking spots: <b>${t.parkSpots}</b> <span style="color:var(--soft)">(${esc(parkBreakdown())})</span><br><span style="font-size:8.5pt;color:var(--soft)">☑ Applicant acknowledges that parking is limited and a pass is not guaranteed; if no pass is issued they will use a bus or arrange a drop-off.</span>` : ""}${t.mode === "shuttle" && busChoice() ? ` — <b>${esc(busChoice().name)}</b> (see Section 7)` : ""}${t.mode === "hotel" && hotelChoice() ? ` — <b>${esc(hotelChoice().key === "other" ? S.hotel.otherName : hotelChoice().name)}</b> (see Section 8)` : ""}${t.mode === "charter" ? `<br>Arranged by: <b>${esc((DATA.transport.charter.arrangedBy.find(a => a.key === t.charterBy) || {}).label || "")}</b> &nbsp;·&nbsp; ${t.charterBy === "centre" ? "Satsang Centre" : "Bus organizer"}: <b>${esc(t.charterName)}</b> &nbsp;·&nbsp; Departure location: <b>${esc(t.charterFrom)}</b><br><span style="font-size:8.5pt;color:var(--soft)">This form is submitted by the bus organizer together with the other passengers’ forms.</span>` : ""}${t.mode === "taxi" ? `<br>Pick-up / drop-off address: <b>${DATA.transport.dropOff.address.map(esc).join(" ")}</b><br><span style="font-size:8.5pt;color:var(--soft)">${esc(DATA.transport.dropOff.warning)}</span>` : ""}</div></div>
     ${t.mode === "shuttle" && busChoice() ? (() => { const bc = busChoice(); return `<div class="ps"><h3>7. Study Centre Shuttle Buses — bus ticket order</h3>
       <table class="pt"><tr><th>Day</th><th>Departure location</th><th>Departure time</th><th># of tickets</th><th>Price</th><th>Bus total</th>${bc.parking ? "<th># of cars parking</th>" : ""}</tr>
       ${S.days.map((d, i) => `<tr><td>${esc(E.days[i].short)}</td>${d.attending ? `<td style="text-align:left">${esc(bc.name)}</td><td>${esc(S.bus.days[i].time)} AM</td><td>${S.bus.days[i].tickets}</td><td>${money(bc.price)}</td><td><b>${money(busDayTotal(i))}</b></td>${bc.parking ? `<td>${S.bus.days[i].cars}</td>` : ""}` : `<td colspan="${bc.parking ? 6 : 5}" style="text-align:left;color:var(--soft)">Not attending</td>`}</tr>`).join("")}
@@ -953,6 +963,7 @@ function focusKey() {
   if (a.dataset.mode) return `[data-mode="${a.dataset.mode}"]`;
   if (a.dataset.busopt) return `[data-busopt="${a.dataset.busopt}"]`;
   if (a.dataset.hotel) return `[data-hotel="${a.dataset.hotel}"]`;
+  if (a.dataset.parkack) return `[data-parkack="1"]`;
   if (a.dataset.snpneed !== undefined) return `[data-snpneed="${a.dataset.snpneed}"][data-v="${a.dataset.v}"]`;
   if (a.dataset.snpeq !== undefined) return `[data-snpeq="${a.dataset.snpeq}"][data-v="${a.dataset.v}"]`;
   if (a.dataset.busloc) return `[data-busloc="${a.dataset.busloc}"]`;
@@ -995,6 +1006,7 @@ document.addEventListener("click", e => {
   else if (b.dataset.snprm !== undefined) { S.snp.splice(+b.dataset.snprm, 1); S.needs.specialN = S.snp.length; touch("snpcount"); render(); }
   else if (b.dataset.snpneed !== undefined) { S.snp[+b.dataset.snpneed].need = b.dataset.v; touch(`snp${b.dataset.snpneed}.need`); render(); }
   else if (b.dataset.snpeq !== undefined) { const p = S.snp[+b.dataset.snpeq], v = b.dataset.v; if (v === "None") p.equipment = p.equipment.includes("None") ? [] : ["None"]; else { p.equipment = p.equipment.filter(x => x !== "None"); p.equipment = p.equipment.includes(v) ? p.equipment.filter(x => x !== v) : [...p.equipment, v]; } touch(`snp${b.dataset.snpeq}.equipment`); render(); }
+  else if (b.dataset.parkack) { S.transport.parkAck = !S.transport.parkAck; touch("parkAck"); render(); }
   else if (b.dataset.hotel) { S.hotel.key = b.dataset.hotel; touch("hotelkey"); render(); }
   else if (b.dataset.busopt) { S.bus.option = b.dataset.busopt; touch("busopt"); render(); }
   else if (b.dataset.busloc) { S.bus.location = b.dataset.busloc; touch("busloc"); render(); }
