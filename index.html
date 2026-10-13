@@ -218,7 +218,7 @@
 /* =====================================================================
    EVENT DATA  (copied from v03-data.js — keep in sync when it changes)
    ===================================================================== */
-const BUILD = { number: "1.0", date: "2026-10-12", preview: true };
+const BUILD = { number: "1.1", date: "2026-10-12", preview: true };
 const DATA = {
   version: "v03_2027 (web)",
   event: {
@@ -390,7 +390,9 @@ const fmtPhone = s => { const d = digits(s).slice(0, 10); if (d.length < 4) retu
 const fmtPostal = s => { const p = String(s).toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6); return p.length > 3 ? p.slice(0,3) + " " + p.slice(3) : p; };
 const kids = d => d.fa5 + d.fa9 + d.fa15;
 const parkElig = () => ({ special: S.needs.special === true, child: S.days.some(d => d.attending && d.fa5 > 0) });
-const busElig = () => !S.days.some(d => d.attending && d.fa5 > 0);
+// Buses are out when a child aged 5 or under is attending, or when anyone has special needs (buses are not wheelchair-accessible)
+const busElig = () => !S.days.some(d => d.attending && d.fa5 > 0) && S.needs.special !== true;
+const busBlockReason = () => S.needs.special === true ? "Not available for this form: buses are not wheelchair-accessible, and you answered Yes to special needs (Section 5). Please choose Request to Park." : "Not available for this form: children age 5 or under must come by car. Please choose Request to Park.";
 const busOpt = () => DATA.busOptions.find(o => o.key === S.bus.option) || null;
 const busLoc = () => { const o = busOpt(); return o && o.locations ? o.locations.find(l => l.key === S.bus.location) || null : null; };
 // the resolved departure choice: { name, price, times, parking } or null
@@ -655,7 +657,7 @@ const R = {
       <div class="note">${T.guidelines.map(g => `• ${esc(g)}`).join("<br>")}</div>
       <div class="f ${bad("mode") ? "bad" : ""}" data-f="mode"><div class="opts">
         ${T.options.map(o => { const off = o.soon || (o.key === "park" && !el.special && !el.child) || ((o.key === "shuttle" || o.key === "hotel") && !busElig());
-          return `<button type="button" class="opt ${t.mode === o.key ? "on" : ""} ${off ? "soon" : ""}" data-mode="${o.key}" ${off ? "disabled" : ""}><span class="radio"></span><span><span class="t">${esc(o.label)}${o.soon ? '<span class="tag">Later phase</span>' : off ? '<span class="tag">Not available</span>' : ""}</span><div class="d">${esc(off && o.ineligible ? o.ineligible : o.desc)}</div></span></button>`; }).join("")}
+          return `<button type="button" class="opt ${t.mode === o.key ? "on" : ""} ${off ? "soon" : ""}" data-mode="${o.key}" ${off ? "disabled" : ""}><span class="radio"></span><span><span class="t">${esc(o.label)}${o.soon ? '<span class="tag">Later phase</span>' : off ? '<span class="tag">Not available</span>' : ""}</span><div class="d">${esc(off && o.ineligible ? ((o.key === "shuttle" || o.key === "hotel") ? busBlockReason() : o.ineligible) : o.desc)}</div></span></button>`; }).join("")}
       </div><div class="msg">${bad("mode") ? esc(errs.mode) : ""}</div></div>
       ${t.mode === "charter" ? `<div class="branch">
         <div class="note" style="margin-top:0">${esc(T.charter.note)}</div>
