@@ -14,20 +14,6 @@
 
   .preview { background: #fff3cd; color: #6b4b00; font-size: 12.5px; font-weight: 600; text-align: center; padding: 6px 12px; border-bottom: 1px solid #f0d98a; }
   .preview b { font-weight: 800; }
-  .uat { background: #fff; border-bottom: 1px solid var(--hair); font-size: 14px; }
-  .uat .uh { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 16px; }
-  .uat .uh b { color: var(--navy); font-size: 14.5px; }
-  .uat .uh button { background: none; border: 1.5px solid var(--navy); color: var(--navy); border-radius: 8px; padding: 4px 12px; font-size: 13px; font-weight: 700; cursor: pointer; }
-  .uat .ub { padding: 0 16px 12px; }
-  .uat .ub p { margin: 0 0 8px; color: var(--soft); }
-  .uat ol { margin: 0 0 10px; padding-left: 20px; }
-  .uat ol li { margin-bottom: 3px; }
-  .uat .sc { display: grid; grid-template-columns: 24px 1fr; gap: 2px 8px; border-top: 1px solid var(--hair); padding: 6px 0; }
-  .uat .sc .n { width: 22px; height: 22px; border-radius: 11px; background: var(--navy); color: #fff; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
-  .uat .sc b { color: var(--ink); }
-  .uat .sc .x { grid-column: 2; color: var(--soft); font-size: 13px; }
-  .uat .ub a { color: var(--navy); font-weight: 600; }
-  .uat .ub .note { background: var(--warn-bg); border-left: 3px solid var(--warn); border-radius: 4px; padding: 6px 10px; font-size: 13px; margin: 0 0 10px; }
 
   /* ---------- header + progress ---------- */
   .top { background: #fff; padding: 14px 20px 10px; border-bottom: 3px solid var(--accent); }
@@ -216,7 +202,6 @@
 <body>
 <div class="app">
   <div class="preview" id="preview"></div>
-  <div class="uat" id="uat"></div>
   <header class="top">
     <div class="kicker">Registration Form</div>
     <h1 id="ev-title"></h1>
@@ -233,7 +218,7 @@
 /* =====================================================================
    EVENT DATA  (copied from v03-data.js — keep in sync when it changes)
    ===================================================================== */
-const BUILD = { number: "1.5", date: "2026-10-20", preview: true, label: "UAT" };
+const BUILD = { number: "1.4", date: "2026-10-20", preview: true, label: "UAT" };
 const DATA = {
   version: "v03_2027 (web)",
   event: {
@@ -1049,52 +1034,6 @@ document.addEventListener("focusout", e => {
 document.addEventListener("change", e => { const el = e.target; if (el.tagName === "SELECT" && el.dataset.path) { set(el.dataset.path, el.value); touch(el.dataset.key); paint(el.dataset.key); save(); } });
 window.addEventListener("beforeprint", renderSheet);
 
-/* =====================================================================
-   UAT PANEL  (shown only while BUILD.label is "UAT"; delete at go-live)
-   ===================================================================== */
-const UAT = {
-  guide: "uat.html",
-  steps: [
-    "Pick a scenario below and fill in the form as a sangat member would (own or made-up details only).",
-    "On the last step press <b>Print / Save as PDF</b> and choose Save as PDF. Name it <b>UAT-S03-YourName.pdf</b> (scenario number, your name).",
-    "Email the PDF to both <b>Accounting</b> and <b>Data Entry</b>, one email per scenario.",
-    "Accounting fulfils it virtually (totals, payment, what would be issued). Data Entry enters it as a real form, marked UAT. Both log anything missing or unclear."
-  ],
-  scenarios: [
-    ["Family by Study Centre bus", "2 adults + child aged 8, both days, Option C Park and Ride from Mohawk College 5:30, 3 tickets/day, 1 car, 3 teas + 3 lunches/day, cheque.", "1 page; bus $60/day; tea and lunch $21/day; total $162."],
-    ["Special needs + Request to Park", "2 adults, both days, special needs Yes for 2, Request to Park 2 spots, tick the acknowledgement; fill both Special Needs forms.", "3 pages; “2 spots (2 Special Needs)”; orange note at 2+ spots; no bus total."],
-    ["Young child", "2 adults + child aged 4, Saturday only.", "Both bus options unavailable with a reason; choose Uber / Taxi / Drop-off; Request to Park still offered."],
-    ["Hotel shuttle, one day", "3 adults, Sunday only, Brampton: Courtyard by Marriott, 3 tickets.", "Only Sunday offered; fixed time; total $30; hotel named on sheet."],
-    ["Charter bus by a Centre", "4 adults, both days, arranged by Local Satsang Centre, Centre name + departure location, 4 teas/day, cash.", "No bus ticket step; organizer shown; total $8."],
-    ["Large family, several cars", "4 adults + children 7 and 12, both days, Option A, 6 tickets/day, then set cars to 3.", "Orange warning about 1 or 2 cars, form continues; cars cannot exceed tickets."],
-    ["Translation and hearing", "3 adults, Saturday only, 2 translation (Punjabi/Hindi to English), 1 hearing, Option B, 3 tickets.", "Counts capped at 3; both counts listed separately on sheet."],
-    ["Mistakes on purpose", "Blank fields, 9-digit phone, postal code 12345, 5 children no guardian, more tickets than people, 4 special needs in a family of 2.", "Each flagged beside the field in plain words; Continue and Print disabled until fixed."],
-    ["Draft and Start over", "Fill in two steps, close the browser, reopen the link, then press Start over.", "Draft restored with a message; Start over clears to step 1."],
-    ["Phone and computer", "Repeat scenario 1 on a phone and on a computer; save both PDFs.", "Both one page and identical."]
-  ]
-};
-const UATKEY = "tsc-uat-open";
-function renderUAT() {
-  const box = $("#uat");
-  if (!(BUILD.preview && BUILD.label === "UAT")) { box.style.display = "none"; return; }
-  let open; try { open = localStorage.getItem(UATKEY); } catch (e) {}
-  if (open === null || open === undefined) { open = "1"; try { localStorage.setItem(UATKEY, "0"); } catch (e) {} }
-  const isOpen = open === "1";
-  box.innerHTML = `<div class="uh"><b>UAT round 1: how to test</b><button type="button" data-uattoggle="${isOpen ? "0" : "1"}">${isOpen ? "Hide" : "Show guide"}</button></div>` + (isOpen ? `<div class="ub">
-    <div class="note">Nothing you type is stored on any server. Every PDF from this build is a test and says <b>build ${BUILD.number} UAT</b> in its footer.</div>
-    <ol>${UAT.steps.map(t => `<li>${t}</li>`).join("")}</ol>
-    <p><b>Scenarios</b> (what to enter, then what to expect):</p>
-    ${UAT.scenarios.map(([t, w, x], i) => `<div class="sc"><span class="n">${i + 1}</span><span><b>${t}</b>: ${w}</span><span class="x">Expect: ${x}</span></div>`).join("")}
-    <p style="margin-top:10px">Full guide, team checklists and the issue log: <a href="${UAT.guide}">UAT guide page</a>.</p>
-  </div>` : "");
-}
-document.addEventListener("click", e => {
-  const b = e.target.closest("[data-uattoggle]"); if (!b) return;
-  try { localStorage.setItem(UATKEY, b.dataset.uattoggle); } catch (e2) {}
-  renderUAT();
-});
-
-renderUAT();
 render();
 </script>
 </body>
