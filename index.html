@@ -218,7 +218,7 @@
 /* =====================================================================
    EVENT DATA  (copied from v03-data.js — keep in sync when it changes)
    ===================================================================== */
-const BUILD = { number: "1.3", date: "2026-10-12", preview: true };
+const BUILD = { number: "1.4", date: "2026-10-20", preview: true, label: "UAT" };
 const DATA = {
   version: "v03_2027 (web)",
   event: {
@@ -915,7 +915,7 @@ function renderSheet() {
     <div class="sig"><div><div class="l">Signature</div><div class="b"></div></div><div><div class="l">Date (MM/DD)</div><div class="b"><span>, ${esc(E.year)}</span></div></div></div>
     <div class="admin"><div class="cap">For admin use only</div><div class="grid">
       <div>Date received<i></i></div><div>Receiving centre<i></i></div><div>Received by<i></i></div><div>Finance rep(s)<i></i></div><div>Remote<span class="cb"></span></div><div>OOT<span class="cb"></span></div></div></div>
-    <div class="pfoot"><span>${esc(DATA.version)} · build ${BUILD.number}${BUILD.preview ? " PREVIEW" : ""} · completed online ${new Date().toLocaleDateString("en-CA")}</span><span>Page 1 of ${1 + (n.special ? S.snp.length : 0)}</span></div>`
+    <div class="pfoot"><span>${esc(DATA.version)} · build ${BUILD.number}${BUILD.preview ? " " + (BUILD.label || "PREVIEW") : ""} · completed online ${new Date().toLocaleDateString("en-CA")}</span><span>Page 1 of ${1 + (n.special ? S.snp.length : 0)}</span></div>`
     + (n.special ? S.snp.map((p, i) => suppSheet(p, i)).join("") : "");
 }
 function suppSheet(p, i) {
@@ -948,7 +948,7 @@ function suppSheet(p, i) {
         <table class="pt"><tr><th></th><th>${esc(D1.short)}</th><th>${esc(D2.short)}</th></tr><tr><td>Hearing assist.</td><td class="bx">☐</td><td class="bx">☐</td></tr><tr><td>Simultaneous trans.</td><td class="bx">☐</td><td class="bx">☐</td></tr></table>
         <div class="grid" style="grid-template-columns:2fr 1fr"><div>Authorized Sevadar signature<i></i></div><div>Date (MM/DD)<i></i></div></div>
       </div></div>
-    <div class="pfoot"><span>${esc(N.version)} · build ${BUILD.number}${BUILD.preview ? " PREVIEW" : ""} · completed online ${new Date().toLocaleDateString("en-CA")}</span><span>Page ${i + 2} of ${total}</span></div>
+    <div class="pfoot"><span>${esc(N.version)} · build ${BUILD.number}${BUILD.preview ? " " + (BUILD.label || "PREVIEW") : ""} · completed online ${new Date().toLocaleDateString("en-CA")}</span><span>Page ${i + 2} of ${total}</span></div>
   </div>`;
 }
 
@@ -974,7 +974,7 @@ function render() {
   normalize();
   const keep = focusKey();
   const step = steps()[S.step], errs = step.validate();
-  $("#preview").innerHTML = BUILD.preview ? `<b>Preview build ${BUILD.number}</b> · for review only, not for real registrations · updated ${BUILD.date}` : "";
+  $("#preview").innerHTML = BUILD.preview ? `<b>${BUILD.label || "Preview"} build ${BUILD.number}</b> · for testing only, not for real registrations · updated ${BUILD.date}` : "";
   $("#preview").style.display = BUILD.preview ? "" : "none";
   $("#ev-title").textContent = E.title;
   $("#ev-dates").textContent = `${dayName(D1)} & ${dayName(D2)} ${E.year}`;

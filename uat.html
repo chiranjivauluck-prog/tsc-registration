@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Online Registration Form: UAT guide</title>
+<style>
+  :root { --ink: #111; --soft: #444; --accent: #0a3d62; --tint: #cce6ff; --line: #9fb8cc; --hair: #d9e3ec; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif; color: var(--ink); background: #fffff2; font-size: 16px; line-height: 1.5; }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 0 0 40px; }
+  .top { background: var(--accent); color: #fff; padding: 18px 20px 16px; }
+  .top .kicker { font-size: 11px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: #cce6ff; }
+  h1 { margin: 2px 0 0; font-size: 22px; line-height: 1.2; }
+  .sub { color: #e6f0fa; font-size: 14px; margin-top: 2px; }
+  main { padding: 16px; }
+  .card { background: #fff; border-radius: 6px; padding: 18px; border: 1px solid var(--hair); margin-bottom: 14px; }
+  h2 { margin: 0 0 8px; font-size: 18px; }
+  h3 { margin: 12px 0 4px; font-size: 15px; color: var(--accent); }
+  p { margin: 0 0 10px; }
+  p:last-child, ul:last-child, ol:last-child, table:last-child { margin-bottom: 0; }
+  ul, ol { padding-left: 22px; margin: 0 0 10px; }
+  li { margin-bottom: 6px; }
+  .note { background: var(--tint); border-left: 4px solid var(--accent); border-radius: 4px; padding: 10px 12px; font-size: 15px; margin: 0 0 12px; color: var(--accent); }
+  .btn { display: block; text-align: center; background: var(--accent); color: #fff; text-decoration: none; font-weight: 700; font-size: 17px; padding: 15px; border-radius: 6px; margin: 6px 0 4px; }
+  .btn:hover { background: #072d49; }
+  .link { word-break: break-all; font-size: 14px; color: var(--soft); text-align: center; }
+  .flow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .flow div { background: var(--tint); border-radius: 6px; padding: 10px 12px; font-size: 15px; }
+  .flow b { display: block; color: var(--accent); margin-bottom: 2px; }
+  @media (max-width: 520px) { .flow { grid-template-columns: 1fr; } }
+  .sc { border: 1.5px solid var(--line); border-radius: 8px; padding: 10px 14px; margin-bottom: 10px; }
+  .sc .t { font-weight: 700; color: var(--accent); }
+  .sc .t span { display: inline-block; min-width: 26px; height: 26px; border-radius: 13px; background: var(--accent); color: #fff; text-align: center; line-height: 26px; font-size: 14px; margin-right: 8px; }
+  .sc .exp { font-size: 14.5px; color: var(--soft); margin-top: 4px; }
+  .sc .exp b { color: var(--ink); }
+  table { width: 100%; border-collapse: collapse; font-size: 14.5px; margin: 0 0 10px; }
+  th, td { text-align: left; vertical-align: top; padding: 6px 8px; border-bottom: 1px solid var(--hair); }
+  th { background: var(--tint); color: var(--accent); font-size: 13px; letter-spacing: .4px; text-transform: uppercase; }
+  .tag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; background: var(--hair); color: var(--soft); border-radius: 6px; padding: 2px 7px; vertical-align: 1px; }
+  .fb { border: 1.5px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+  .fb b { display: block; }
+  .small { font-size: 13.5px; color: var(--soft); }
+  .foot { text-align: center; color: var(--soft); font-size: 12px; margin-top: 10px; }
+  @media print { body { background: #fff; } .btn { display: none; } .card { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="kicker">Master&rsquo;s Toronto Satsang Program &middot; User acceptance testing</div>
+    <h1>Online Registration Form: UAT guide</h1>
+    <div class="sub">UAT round 1 &middot; build 1.4 &middot; updated 20 October 2026</div>
+  </header>
+  <main>
+
+    <div class="card">
+      <div class="note"><b>For the UAT team only. Please do not share this link outside the team yet.</b> Seen without context it could be mistaken for the live registration process.</div>
+      <a class="btn" href="https://chiranjivauluck-prog.github.io/tsc-registration/">Open the UAT form</a>
+      <div class="link">chiranjivauluck-prog.github.io/tsc-registration</div>
+      <p style="margin-top:12px">Works on phones and computers; nothing to install. The form runs entirely in your browser: <b>nothing you type is sent to or stored on any server or database.</b> Everything stays on your own device until you print or save it. Use <i>Start over</i> at any time to clear it.</p>
+      <p class="small">Please use your own details or made-up details. Do not enter another person&rsquo;s real name or phone number.</p>
+    </div>
+
+    <div class="card">
+      <h2>What UAT is testing</h2>
+      <p>The sangat fills in the form online, prints it or saves it as a PDF, and brings it to Satsang as today. The printed sheet should arrive complete, legible and already added up, so it can go straight to the Finance desk with no checking. UAT confirms three things:</p>
+      <ol>
+        <li>The form guides a first-time user through every scenario without confusion.</li>
+        <li>The printed sheet gives <b>Accounting</b> everything needed to take payment and issue wristbands, tokens and passes.</li>
+        <li>The printed sheet gives <b>Data Entry</b> everything needed to enter the registration exactly as a paper form would.</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h2>How a UAT round works</h2>
+      <div class="flow">
+        <div><b>1 &middot; Fill in</b>Pick a scenario below and complete the form on your phone or computer, exactly as a sangat member would.</div>
+        <div><b>2 &middot; Print / Save as PDF</b>On the last step press <i>Print / Save as PDF</i> and choose <i>Save as PDF</i>. Name the file <b>UAT-S03-YourName.pdf</b> (scenario number, your name).</div>
+        <div><b>3 &middot; Send</b>Email the PDF to both <b>Accounting</b> and <b>Data Entry</b> (addresses at the bottom). One email per scenario is easiest.</div>
+        <div><b>4 &middot; Teams process</b>Accounting fulfils the form virtually (totals, payment, what would be issued). Data Entry enters it into the registration records as a real form. Both log anything missing or unclear.</div>
+      </div>
+      <p style="margin-top:12px" class="small">Every PDF is a test. Nothing is registered, no payment is taken, and the records Data Entry creates are test records to be removed after the round.</p>
+    </div>
+
+    <div class="card">
+      <h2>Test scenarios</h2>
+      <p class="small">Each scenario says what to enter and what you should see. If what you see is different, that is a finding: note it in the issue log below. Testers who have time are welcome to invent their own scenario as number 11.</p>
+
+      <div class="sc"><div class="t"><span>1</span>Family by Study Centre bus</div>
+        2 adults and 1 child aged 8, both days, Study Centre Shuttle Buses, Option C Park and Ride from Mohawk College, 5:30 am both days, 3 tickets each day, 1 car, 3 teas and 3 lunches each day, paying by cheque.
+        <div class="exp"><b>Expect:</b> a one-page sheet; bus total $60 each day; tea and lunch $21 each day; total payment $162; 1 guardian for 1 child accepted.</div></div>
+
+      <div class="sc"><div class="t"><span>2</span>Special needs and Request to Park</div>
+        2 adults, both days. Answer Yes to special needs for 2 members, then choose Request to Park at the Study Centre, 2 spots, and tick the acknowledgement. Fill in both Special Needs forms (one with a companion, one with a wheelchair).
+        <div class="exp"><b>Expect:</b> the printout has 3 pages (sheet plus 2 supplements); the parking line reads &ldquo;2 spots (2 Special Needs)&rdquo;; an orange note about 2 or more spots; no bus tickets or bus total anywhere.</div></div>
+
+      <div class="sc"><div class="t"><span>3</span>Young child</div>
+        2 adults and 1 child aged 4, Saturday only. Open Transportation.
+        <div class="exp"><b>Expect:</b> Study Centre Shuttle Buses and Hotel Shuttle Buses are shown as unavailable with a reason (children 5 or under must come by car). Choose Uber / Taxi / Drop-off; the sheet shows the drop-off address. Request to Park is also available because of the child.</div></div>
+
+      <div class="sc"><div class="t"><span>4</span>Hotel shuttle, one day</div>
+        3 adults, Sunday only, Hotel Shuttle Buses, Brampton: Courtyard by Marriott, 3 tickets.
+        <div class="exp"><b>Expect:</b> only Sunday is offered for tickets; the departure time is fixed; total $30; the sheet names the hotel.</div></div>
+
+      <div class="sc"><div class="t"><span>5</span>Charter bus arranged by a Centre</div>
+        4 adults, both days, Charter Buses, arranged by Local Satsang Centre, enter a Centre name and departure location, 4 teas each day, no lunch, paying cash.
+        <div class="exp"><b>Expect:</b> no bus ticket step; the sheet shows the organizer and departure location; total $8.</div></div>
+
+      <div class="sc"><div class="t"><span>6</span>Large family, several cars</div>
+        4 adults and 2 children aged 7 and 12, both days, Option A Orangeville Fairgrounds, 6 tickets each day, then set cars parking to 3.
+        <div class="exp"><b>Expect:</b> an orange warning that most families arrive in one or two cars, but the form still continues. Cars cannot be set higher than the day&rsquo;s tickets.</div></div>
+
+      <div class="sc"><div class="t"><span>7</span>Translation and hearing assistance</div>
+        3 adults, Saturday only, 2 members needing Punjabi/Hindi to English translation, 1 needing hearing assistance, Option B Brampton Fairgrounds, 3 tickets.
+        <div class="exp"><b>Expect:</b> the counts cannot exceed 3; the sheet lists translation and hearing counts separately.</div></div>
+
+      <div class="sc"><div class="t"><span>8</span>Make mistakes on purpose</div>
+        Leave required fields blank, type a 9-digit phone number and a postal code like 12345, list 5 children with no guardian, ask for more bus tickets than people listed, enter special needs for 4 members in a family of 2.
+        <div class="exp"><b>Expect:</b> each mistake is flagged next to the field as you type, in plain words; Continue and Print stay disabled until fixed; nothing is lost while you correct it.</div></div>
+
+      <div class="sc"><div class="t"><span>9</span>Draft and Start over</div>
+        Fill in the first two steps, close the browser completely, then reopen the link. Then press Start over.
+        <div class="exp"><b>Expect:</b> your draft is restored with a message; Start over clears everything and returns to step 1.</div></div>
+
+      <div class="sc"><div class="t"><span>10</span>Phone and computer</div>
+        Repeat scenario 1 on a phone and again on a computer. Save the PDF from each.
+        <div class="exp"><b>Expect:</b> both PDFs are one page, identical in content, and readable when printed.</div></div>
+    </div>
+
+    <div class="card">
+      <h2>Tester checklist for every printed sheet</h2>
+      <ul>
+        <li>Name, phone, city, province and postal code are complete and readable.</li>
+        <li>The attending table shows the right people on the right days.</li>
+        <li>Only the transportation option you chose appears, with its details.</li>
+        <li>Bus, tea and lunch totals match what you entered, and the grand total adds up.</li>
+        <li>Payment method shows; the signature and date lines are blank and ready to sign.</li>
+        <li>The footer shows the version and &ldquo;build 1.4 UAT&rdquo;.</li>
+        <li>Special Needs supplements, if any, follow as extra pages numbered with the sheet.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>For the Accounting team</h2>
+      <p>Treat each PDF as a form handed to you at the Finance desk. Without contacting the tester:</p>
+      <ol>
+        <li>Confirm the totals: recompute bus, tea and lunch amounts and the grand total from the quantities shown.</li>
+        <li>Record what you would issue: wristbands per day, Family Area tokens, translation and hearing tokens, parking pass, bus tickets by location and time.</li>
+        <li>Note anything you had to guess, ask about, or could not find on the sheet.</li>
+      </ol>
+      <p class="small">The aim is to decide whether a form from the online page can go straight to payment with no checking.</p>
+    </div>
+
+    <div class="card">
+      <h2>For the Data Entry team</h2>
+      <p>Enter each PDF into the registration records exactly as you would a paper form. Then:</p>
+      <ol>
+        <li>Note any field the system needs that the sheet does not provide, or provides in a different form or order.</li>
+        <li>Note anything that slowed you down compared with a well-filled paper form.</li>
+        <li>Mark every record you create as a UAT test so it can be removed after the round.</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h2>Issue log</h2>
+      <p class="small">Add one row per finding to the shared log, or copy this table into your email.</p>
+      <table>
+        <tr><th>Scenario</th><th>Who found it</th><th>Step or page</th><th>What happened and what you expected</th><th>Severity</th></tr>
+        <tr><td>S03</td><td>Example</td><td>Transportation</td><td>Bus option still selectable with a child aged 4; expected it to be unavailable</td><td>High</td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td></tr>
+      </table>
+      <p class="small"><span class="tag">Severity</span> High: blocks a sangat member or produces a wrong total. Medium: confusing or missing but can be worked around. Low: wording, layout, polish.</p>
+    </div>
+
+    <div class="card">
+      <h2>Known limits in this build</h2>
+      <ul>
+        <li>Dates show as &ldquo;July XX 2027&rdquo;; prices and bus times are from the 2026 paper form.</li>
+        <li>The yellow UAT banner and the UAT footer label are there on purpose and will be removed for go-live.</li>
+        <li>English only in this round.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Contacts and dates</h2>
+      <div class="fb">
+        <b>Send PDFs to Accounting:</b> <span>[name / email]</span>
+        <b style="margin-top:6px">Send PDFs to Data Entry:</b> <span>[name / email]</span>
+        <b style="margin-top:6px">Report issues to:</b> <span>[name / phone / email]</span>
+        <b style="margin-top:6px">UAT round closes:</b> <span>[date]</span>
+      </div>
+    </div>
+    <div class="foot">This page and the form are for user acceptance testing only. Nothing entered is stored on any server.</div>
+  </main>
+</div>
+</body>
+</html>
